@@ -62,7 +62,17 @@
       "Bash(vercel:*)",
       "Bash(timeout:*)",
       "Bash(git remote set-url:*)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv pip:*)",
+      "Bash(uv run python:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)",
+      "Bash(for pid in 11292 36176 7992)",
+      "Bash(do taskkill:*)",
+      "Bash(done:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

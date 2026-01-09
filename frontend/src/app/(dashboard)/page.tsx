@@ -33,6 +33,24 @@ export default function DashboardPage() {
   const [quickAddTitle, setQuickAddTitle] = useState('')
 
   useEffect(() => {
+    // Check for OAuth token in URL (from Google sign-in)
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get("token")
+    const userParam = urlParams.get("user")
+
+    if (token && userParam) {
+      try {
+        const user = JSON.parse(decodeURIComponent(userParam))
+        localStorage.setItem("auth_token", token)
+        localStorage.setItem("user", JSON.stringify(user))
+
+        // Clean URL by removing search params
+        window.history.replaceState({}, "", "/dashboard")
+      } catch (error) {
+        console.error("Error storing OAuth credentials:", error)
+      }
+    }
+
     fetchTasks()
   }, [filter])
 

@@ -4,9 +4,11 @@ Authentication router.
 Handles user sign-up, sign-in, sign-out, and Google OAuth.
 """
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlmodel import Session, select
 from datetime import datetime
+import secrets
+from urllib.parse import urlencode
 
 from app.database import get_session
 from app.dependencies import get_current_user
@@ -20,6 +22,7 @@ from app.schemas import (
     ErrorDetail
 )
 from app.models.user import User
+from app.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
 
 # Password hashing (simple implementation for MVP)
@@ -220,7 +223,7 @@ async def get_current_user_info(
 
 
 @router.get("/sign-in/google")
-async def google_sign_in():
+async def google_sign_in(request: Request):
     """
     Initiate Google OAuth sign-in.
 
@@ -230,22 +233,170 @@ async def google_sign_in():
         success: true
         data: { url: Google OAuth URL }
 
-    TODO: Implement Google OAuth flow
+    Query Parameters:
+        redirect_uri: Optional redirect URI after sign-in (default: frontend dashboard)
     """
-    return create_error_response(
-        message="Google OAuth not implemented yet"
-    ), status.HTTP_501_NOT_IMPLEMENTED
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail=create_error_response(
+                message="Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."
+            )
+        )
+
+    # Get frontend URL from environment or request
+    frontend_url = request.headers.get("Origin") or "https://frontend-omega-eight-86.vercel.app"
+
+    # Generate state parameter for CSRF protection
+    state = secrets.token_urlsafe(32)
+
+    # Build Google OAuth URL
+    google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    params = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": f"{frontend_url}/auth/callback/google",
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+
+    auth_url = f"{google_auth_url}?{urlencode(params)}"
+
+    return create_success_response(
+        data={"url": auth_url, "state": state},
+        message="Google OAuth URL generated"
+    )
 
 
 @router.get("/callback/google")
-async def google_callback():
+async def google_callback(
+    code: str,
+    state: str,
+    session: Annotated[Session, Depends(get_session)]
+):
     """
     Handle Google OAuth callback.
 
     Processes OAuth callback from Google and creates/signs in user.
 
-    TODO: Implement Google OAuth callback handling
+    Query Parameters:
+        code: Authorization code from Google
+        state: State parameter for CSRF verification
+
+    Response:
+        Redirects to frontend with token
     """
-    return create_error_response(
-        message="Google OAuth not implemented yet"
-    ), status.HTTP_501_NOT_IMPLEMENTED
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Google OAuth is not configured"
+        )
+
+    try:
+        import httpx
+
+        # Exchange authorization code for access token
+        token_url = "https://oauth2.googleapis.com/token"
+        token_data = {
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": "https://frontend-omega-eight-86.vercel.app/auth/callback/google",
+            "grant_type": "authorization_code",
+        }
+
+        async with httpx.AsyncClient() as client:
+            token_response = await client.post(token_url, data=token_data)
+            token_response.raise_for_status()
+            token_json = token_response.json()
+
+            access_token = token_json.get("access_token")
+
+            # Get user info from Google
+            user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+            headers = {"Authorization": f"Bearer {access_token}"}
+
+            user_info_response = await client.get(user_info_url, headers=headers)
+            user_info_response.raise_for_status()
+            user_info = user_info_response.json()
+
+        # Extract user information
+        google_id = user_info.get("id")
+        email = user_info.get("email")
+        name = user_info.get("name")
+
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email not provided by Google"
+            )
+
+        # Check if user exists by Google ID or email
+        existing_user = session.exec(
+            select(User).where(
+                (User.google_id == google_id) | (User.email == email)
+            )
+        ).first()
+
+        if existing_user:
+            # Update user with Google ID if not set
+            if not existing_user.google_id:
+                existing_user.google_id = google_id
+                if not existing_user.name:
+                    existing_user.name = name
+                session.add(existing_user)
+                session.commit()
+                session.refresh(existing_user)
+
+            user = existing_user
+        else:
+            # Create new user
+            user = User(
+                id=f"usr_{int(datetime.utcnow().timestamp())}",
+                email=email,
+                name=name,
+                google_id=google_id,
+                # No password for OAuth users
+            )
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+
+        # Generate JWT token
+        token = create_jwt_token(user.id)
+
+        # Return user response with token
+        user_response = UserResponse.model_validate(user)
+
+        # Return HTML page that redirects to frontend with token
+        frontend_url = "https://frontend-omega-eight-86.vercel.app"
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Sign in with Google</title>
+            <script>
+                window.location.href = "{frontend_url}/dashboard?token={token}&user=" + encodeURIComponent(JSON.stringify({user_response.model_dump()}));
+            </script>
+        </head>
+        <body>
+            <p>Signing in...</p>
+        </body>
+        </html>
+        """
+
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=html_content)
+
+    except httpx.HTTPError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to exchange token with Google: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"OAuth callback failed: {str(e)}"
+        )

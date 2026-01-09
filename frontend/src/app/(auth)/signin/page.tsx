@@ -75,9 +75,25 @@ export default function SignInPage() {
     }
   }
 
-  const handleGoogleSignIn = () => {
-    const googleUrl = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/sign-in/google`
-    window.location.href = googleUrl
+  const handleGoogleSignIn = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/sign-in/google`)
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data?.url) {
+          // Redirect to Google OAuth URL
+          window.location.href = data.data.url
+        } else {
+          setError("Failed to initiate Google sign-in")
+        }
+      } else {
+        setError("Failed to connect to authentication server")
+      }
+    } catch (err) {
+      setError("Network error. Please try again.")
+      console.error("Google sign-in error:", err)
+    }
   }
 
   return (

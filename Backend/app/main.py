@@ -145,14 +145,18 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     # CSP (Content Security Policy)
+    # Allow connections from frontend domains
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+
     response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-        "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: https:; "
-        "font-src 'self' data:; "
-        "connect-src 'self'; "
-        "frame-ancestors 'none';"
+        f"default-src 'self'; "
+        f"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+        f"style-src 'self' 'unsafe-inline'; "
+        f"img-src 'self' data: https:; "
+        f"font-src 'self' data:; "
+        f"connect-src 'self' {frontend_url} {backend_url} https://frontend-omega-eight-86.vercel.app https://todo-backend-api-pi.vercel.app; "
+        f"frame-ancestors 'none';"
     )
 
     return response

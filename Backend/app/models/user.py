@@ -17,6 +17,7 @@ class User(SQLModel, table=True):
         email: User email address (unique, required)
         name: User's display name (optional)
         password_hash: Hashed password for authentication
+        google_id: Google OAuth user ID (optional)
         created_at: Account creation timestamp
         updated_at: Last update timestamp
     """
@@ -25,6 +26,7 @@ class User(SQLModel, table=True):
     id: str = Field(default=None, primary_key=True)
     email: str = Field(unique=True, index=True, max_length=255)
     name: Optional[str] = Field(default=None, max_length=255)
-    password_hash: str = Field(default=None, max_length=255)
+    password_hash: Optional[str] = Field(default=None, max_length=255)
+    google_id: Optional[str] = Field(default=None, max_length=255, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow, sa_column_kwargs={"onupdate": datetime.utcnow})
