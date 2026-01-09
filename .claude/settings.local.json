@@ -60,7 +60,9 @@
       "Bash(powershell -Command:*)",
       "Bash(npm run build:*)",
       "Bash(vercel:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git check-ignore:*)"
     ]
   }
 }
