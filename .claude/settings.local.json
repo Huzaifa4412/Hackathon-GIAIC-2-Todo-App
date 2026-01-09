@@ -72,7 +72,8 @@
       "Bash(for pid in 11292 36176 7992)",
       "Bash(do taskkill:*)",
       "Bash(done:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(vercel --version:*)"
     ]
   }
 }

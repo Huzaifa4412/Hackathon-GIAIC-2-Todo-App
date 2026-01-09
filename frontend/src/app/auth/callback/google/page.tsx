@@ -9,12 +9,12 @@
  */
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { motion } from "motion/react"
 import { Loader2 } from "lucide-react"
 
-export default function GoogleCallbackPage() {
+function GoogleCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
@@ -121,5 +121,21 @@ export default function GoogleCallbackPage() {
         </div>
       </motion.div>
     </div>
+  )
+}
+
+export default function GoogleCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#050505]">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+          className="w-16 h-16 border-4 border-[#ff4d00] border-t-transparent rounded-full"
+        />
+      </div>
+    }>
+      <GoogleCallbackContent />
+    </Suspense>
   )
 }
