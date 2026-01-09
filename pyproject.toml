@@ -69,3 +69,8 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "--cov=src/todo_cli --cov-report=html --cov-report=term-missing"
+
+[tool.uv.workspace]
+members = [
+    "Backend",
+]

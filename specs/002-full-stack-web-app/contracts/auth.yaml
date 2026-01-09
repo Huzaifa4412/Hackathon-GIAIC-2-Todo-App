@@ -1,0 +1,290 @@
+openapi: 3.0.0
+info:
+  title: Todo App - Authentication API
+  description: Authentication endpoints for Better Auth integration
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+paths:
+  /api/auth/sign-up:
+    post:
+      summary: Register new user
+      description: Create a new user account with email and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123!
+                name:
+                  type: string
+                  example: John Doe
+      responses:
+        '200':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                message: Validation failed
+                errors:
+                  - field: email
+                    message: Invalid email format
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                message: Email already registered
+                errors: []
+
+  /api/auth/sign-in:
+    post:
+      summary: Sign in user
+      description: Authenticate user with email and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+      responses:
+        '200':
+          description: Signed in successfully
+          headers:
+            Set-Cookie:
+              description: httpOnly session cookie
+              schema:
+                type: string
+                example: session=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=604800
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          token:
+                            type: string
+                            description: JWT token valid for 7 days
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                message: Invalid email or password
+                errors: []
+
+  /api/auth/sign-in/google:
+    get:
+      summary: Initiate Google OAuth
+      description: Redirect to Google OAuth consent screen
+      tags:
+        - Authentication
+        - OAuth
+      responses:
+        '302':
+          description: Redirect to Google
+          headers:
+            Location:
+              description: Google OAuth URL
+              schema:
+                type: string
+
+  /api/auth/callback/google:
+    get:
+      summary: Google OAuth callback
+      description: Handle Google OAuth callback
+      tags:
+        - Authentication
+        - OAuth
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: OAuth authorization code
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: OAuth state parameter
+      responses:
+        '200':
+          description: Signed in with Google
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/User'
+                          token:
+                            type: string
+        '400':
+          description: OAuth error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/sign-out:
+    post:
+      summary: Sign out user
+      description: Clear user session
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Signed out successfully
+          headers:
+            Set-Cookie:
+              description: Clear session cookie
+              schema:
+                type: string
+                example: session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data: null
+                message: Signed out successfully
+                errors: null
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User unique identifier
+          example: usr_1234567890
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          nullable: true
+          example: John Doe
+      required:
+        - id
+        - email
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        errors:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+      required:
+        - success
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: object
+          nullable: true
+          example: null
+        message:
+          type: string
+          example: Error description
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: email
+              message:
+                type: string
+                example: Invalid email format
+      required:
+        - success
+        - message

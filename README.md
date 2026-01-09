@@ -1,191 +1,181 @@
-# Todo CLI
+# Todo App - Full-Stack Web Application (Phase II)
 
-A modern command-line todo application with beautiful terminal UI, built with Python and Click.
+A modern, full-stack todo application with authentication and task management.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![Python](https://img.shields.io/badge/python-3.12+-green)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-orange)
+
+## 🌟 Multi-Phase Project
+
+This is **Phase II** of the Todo App project. For the Phase I CLI application, see the [Phase I README](docs/PHASE_I_CLI.md).
+
+## Tech Stack
+
+### Frontend
+- **Next.js 16.1.1** - React framework with App Router
+- **React 19.2.3** - UI library
+- **TypeScript 5** - Type safety
+- **Tailwind CSS 4** - Styling
+- **Better Auth 1.4.10** - Authentication (Email/Password + Google OAuth)
+
+### Backend
+- **FastAPI 0.128+** - Python web framework
+- **SQLModel 0.0.31+** - ORM (SQLAlchemy + Pydantic)
+- **PostgreSQL** - Database (Neon Serverless)
+- **PyJWT 2.10+** - JWT authentication
+- **Uvicorn 0.40+** - ASGI server
 
 ## ✨ Features
 
-- 🎨 **Modern CLI UI** - Beautiful colored tables and formatted output
-- 📝 **Add Tasks** - Quick task creation with descriptions
-- 🎯 **Priority Levels** - High, Medium, and Low priorities with color coding
-- ✅ **Mark Complete** - Track your progress with completion status
-- 🗑️ **Delete Tasks** - Clean up your task list
-- 📊 **Statistics** - View completion percentage and task counts
-- 💾 **Persistent Storage** - JSON file storage with automatic backups
-- 🌈 **Rich Terminal UI** - Powered by the Rich library
+- ✅ Email/Password authentication
+- ✅ Google OAuth sign-in
+- ✅ JWT-based API security
+- ✅ User data isolation
+- ✅ Task CRUD operations
+- ✅ Responsive design (mobile-friendly)
 
-## 📸 Preview
+## 🚀 Quick Start
 
-```
-+-------------------------------------------------------------------+
-| ID     | Status   | Task                           | Priority    |
-+--------+----------+--------------------------------+--------------+
-| 16     |    -     | Build modern UI                 | HIGH         |
-| 17     |    -     | Write tests                     | MEDIUM       |
-| 18     |    +     | Deploy app                      | LOW          |
-+-------------------------------------------------------------------+
+### Prerequisites
 
-Stats
-  Total Tasks: 16
-  Completed: 3 (19%)
-  High Priority: 6
-```
+- Node.js 18+ or 20+
+- Python 3.13+
+- Neon account (for PostgreSQL database)
+- Google Cloud Project (for OAuth, optional)
 
-## 🚀 Installation
+### 1. Database Setup (Neon)
 
 ```bash
-git clone https://github.com/Huzaifa4412/Hackathon-GIAIC-2-Todo-App-Phase-1.git
-cd Hackathon-GIAIC-2-Todo-App-Phase-1
-pip install -e .
+# Install Neon CLI
+npm install -g neonctl
+
+# Initialize Neon project
+npx neonctl@latest init
+
+# Create development branch
+npx neonctl@latest branches create --name dev
+
+# Copy connection string
+npx neonctl@latest connection-string
 ```
 
-### Development Installation
+### 2. Backend Setup
 
 ```bash
-pip install -e ".[dev]"
+cd backend
+
+# Create virtual environment
+python -m venv venv
+
+# Activate (Windows)
+venv\Scripts\activate
+# Activate (Linux/Mac)
+source venv/bin/activate
+
+# Install dependencies (using UV)
+pip install uv
+uv sync
+
+# Create .env from .env.example
+cp .env.example .env
+
+# Edit .env with your Neon connection string
+# DATABASE_URL=postgresql://...
+# BETTER_AUTH_SECRET=generate-with-openssl-rand-base64-32
 ```
 
-## 💻 Usage
-
-### Adding Tasks
+### 3. Frontend Setup
 
 ```bash
-# Add a task with medium priority (default)
-todo add "Buy groceries"
+cd frontend
 
-# Add a task with high priority
-todo add "Urgent task" --priority high
+# Install dependencies
+npm install
 
-# Add a task with low priority
-todo add "Quick fix" -p low
+# Create .env.local from .env.local.example
+cp .env.local.example .env.local
+
+# Edit .env.local with your configuration
+# BETTER_AUTH_SECRET=same-as-backend
+# NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-### Listing Tasks
+### 4. Run Development Servers
 
 ```bash
-# List all tasks with statistics
-todo list
+# Terminal 1: Backend
+cd backend
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Terminal 2: Frontend
+cd frontend
+npm run dev
 ```
 
-### Completing Tasks
+Visit:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
-```bash
-# Mark task as complete
-todo complete 1
+## 📂 Project Structure
+
+```
+todo-app/
+├── backend/
+│   ├── app/
+│   │   ├── main.py          # FastAPI application
+│   │   ├── config.py        # Configuration
+│   │   ├── database.py      # Database connection
+│   │   ├── dependencies.py  # JWT auth dependency
+│   │   ├── models/          # SQLModel models
+│   │   ├── schemas/         # Pydantic schemas
+│   │   ├── routers/         # API endpoints
+│   │   └── utils/           # Utilities
+│   ├── tests/               # Backend tests
+│   └── pyproject.toml       # Python dependencies
+├── frontend/
+│   ├── src/
+│   │   ├── app/             # Next.js App Router
+│   │   ├── components/      # React components
+│   │   └── lib/             # Utilities (auth, API client)
+│   └── package.json         # Node dependencies
+└── specs/                   # SDD artifacts
 ```
 
-### Deleting Tasks
+## 🧪 Testing
 
 ```bash
-# Delete a task
-todo delete 1
-```
-
-### Getting Help
-
-```bash
-# Show general help
-todo --help
-
-# Show command-specific help
-todo add --help
-todo list --help
-todo complete --help
-todo delete --help
-```
-
-## 🎨 Priority Colors
-
-- 🔴 **HIGH** - Urgent tasks that need immediate attention
-- 🟡 **MEDIUM** - Standard priority tasks (default)
-- 🔵 **LOW** - Tasks that can be done later
-
-## 📂 Data Storage
-
-Tasks are stored in `~/.todo.json` by default. The application automatically:
-
-- Creates backups (keeps last 3 versions)
-- Uses atomic writes for data safety
-- Attempts to restore from backups if corruption is detected
-
-### Custom File Location
-
-```bash
-# Use a custom file location
-todo --file /path/to/custom.json add "Task"
-```
-
-## 🧪 Development
-
-### Running Tests
-
-```bash
-# Run tests
+# Backend tests
+cd backend
 pytest
 
-# Run tests with coverage
-pytest --cov=src/todo_cli --cov-report=html
+# Frontend tests
+cd frontend
+npm test
+
+# E2E tests
+cd frontend
+npx playwright test
 ```
 
-### Code Quality
+## 📚 Documentation
 
-```bash
-# Lint code
-ruff check src/
+- [Quickstart Guide](specs/002-full-stack-web-app/quickstart.md) - Detailed setup instructions
+- [Implementation Plan](specs/002-full-stack-web-app/plan.md) - Architecture and design
+- [Tasks](specs/002-full-stack-web-app/tasks.md) - Implementation task breakdown
+- [API Contracts](specs/002-full-stack-web-app/contracts/) - OpenAPI specifications
 
-# Format code
-black src/
+## 🔄 Development Workflow
 
-# Type check
-mypy src/todo_cli/
-```
+1. **Phase 1**: Setup (project initialization) ✅
+2. **Phase 2**: Foundational (database, JWT, models)
+3. **Phase 3**: Authentication (email/password + OAuth)
+4. **Phase 4**: Task Management (CRUD operations)
+5. **Phase 5**: Polish & Testing
 
-## 📦 Project Structure
-
-```
-src/todo_cli/
-├── __init__.py
-├── cli.py              # Main CLI entry point
-├── commands/           # CLI commands
-│   ├── add.py          # Add task command
-│   ├── list.py         # List tasks command
-│   ├── complete.py     # Complete task command
-│   └── delete.py       # Delete task command
-├── models/             # Data models
-│   └── task.py         # Task and TaskList models
-├── storage/            # Data persistence
-│   └── file_store.py   # File-based storage with backups
-└── ui/                 # UI styling
-    └── styles.py       # Rich terminal formatting
-
-tests/
-├── unit/               # Unit tests
-├── integration/        # Integration tests
-└── contract/           # Contract tests
-
-docs/                   # Documentation
-.specify/              # Spec-Driven Development artifacts
-.history/              # Prompt history and ADRs
-```
-
-## 🛠️ Tech Stack
-
-- **Python 3.12+** - Modern Python with type hints
-- **Click 8.1+** - Elegant CLI framework
-- **Rich 13.0+** - Beautiful terminal output
-- **pytest** - Testing framework
-- **JSON** - Data persistence format
-
-## 📊 Code Quality
-
-- **85%** overall code coverage
-- **31 passing tests**
-- Type hints throughout
-- Ruff linting compliant
-- Follows Spec-Driven Development methodology
+See [tasks.md](specs/002-full-stack-web-app/tasks.md) for complete task list.
 
 ## 🔐 License
 
@@ -193,24 +183,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📝 Roadmap
-
-- [ ] Add task editing functionality
-- [ ] Add task search/filter
-- [ ] Add due dates
-- [ ] Add tags/categories
-- [ ] Add task notes/descriptions
-- [ ] Add export to different formats (Markdown, CSV)
-- [ ] Add cloud sync support
+This project uses Spec-Driven Development (SDD). See [constitution.md](.specify/memory/constitution.md) for development principles.
 
 ## 👨‍💻 Built For
 
-GIAIC Hackathon - Phase 1
+GIAIC Hackathon - Phase 2
 
 ## 🙏 Acknowledgments
 
-- [Click](https://click.palletsprojects.com/) - Python CLI framework
-- [Rich](https://rich.readthedocs.io/) - Terminal formatting library
+- [Better Auth](https://better-auth.com) - Authentication library
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
+- [Neon](https://neon.tech) - Serverless PostgreSQL
 - Spec-Driven Development methodology

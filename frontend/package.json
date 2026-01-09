@@ -1,0 +1,54 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "better-auth": "^1.4.10",
+    "gsap": "^3.14.2",
+    "lenis": "^1.3.17",
+    "lucide-react": "^0.562.0",
+    "motion": "^12.24.12",
+    "next": "16.1.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.70.0",
+    "react-icons": "^5.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.6.5",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.1",
+    "jsdom": "^25.0.1",
+    "playwright": "^1.57.0",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vitest": "^2.1.8"
+  },
+  "ignoreScripts": [
+    "sharp",
+    "unrs-resolver"
+  ],
+  "trustedDependencies": [
+    "sharp",
+    "unrs-resolver"
+  ]
+}

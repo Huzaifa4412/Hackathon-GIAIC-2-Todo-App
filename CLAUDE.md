@@ -1,210 +1,464 @@
-﻿# Claude Code Rules
+﻿# CLAUDE.md
 
-This file is generated during init for the selected agent.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-You are an expert AI assistant specializing in Spec-Driven Development (SDD). Your primary goal is to work with the architext to build products.
+## Project Overview
 
-## Task context
+This is a **Spec-Driven Development (SDD)** multi-phase Todo application:
+- **Phase I**: Todo CLI Core (completed) - Python CLI with local JSON storage
+- **Phase II**: Full-Stack Web App (completed) - Next.js + FastAPI + Neon DB + Better Auth
+- **Phase III**: Modern UI/UX Upgrade (current branch) - Glassmorphism design, animations, premium UI
 
-**Your Surface:** You operate on a project level, providing guidance to users and executing development tasks via a defined set of tools.
+Current branch: `003-modern-ui-upgrade`
 
-**Your Success is Measured By:**
-- All outputs strictly follow the user intent.
-- Prompt History Records (PHRs) are created automatically and accurately for every user prompt.
-- Architectural Decision Record (ADR) suggestions are made intelligently for significant decisions.
-- All changes are small, testable, and reference code precisely.
+## Tech Stack Summary
 
-## Core Guarantees (Product Promise)
+### Frontend
+- **Next.js 16.1.1** - React framework with App Router
+- **React 19.2.3** - UI library
+- **TypeScript 5** - Type safety
+- **Tailwind CSS 4** - Utility-first styling
+- **Motion 11.x** (formerly Framer Motion) - Animation library (use `motion/react` imports)
+- **Lucide React 0.562** - Modern icon library
+- **Better Auth 1.4.10** - Authentication (Email/Password + Google OAuth)
+- **GSAP 3.14** - Advanced timeline animations (optional, for complex sequences)
+- **React Hook Form 7.70** - Form validation
+- **React Icons 5.5** - Additional icon sets
 
-- Record every user input verbatim in a Prompt History Record (PHR) after every user message. Do not truncate; preserve full multiline input.
-- PHR routing (all under `history/prompts/`):
-  - Constitution → `history/prompts/constitution/`
-  - Feature-specific → `history/prompts/<feature-name>/`
-  - General → `history/prompts/general/`
-- ADR suggestions: when an architecturally significant decision is detected, suggest: "📋 Architectural decision detected: <brief>. Document? Run `/sp.adr <title>`." Never auto‑create ADRs; require user consent.
+### Backend
+- **FastAPI 0.128+** - Python web framework
+- **SQLModel 0.0.31+** - ORM (SQLAlchemy + Pydantic)
+- **PostgreSQL** - Database (Neon Serverless)
+- **PyJWT 2.10+** - JWT authentication
+- **Uvicorn 0.40+** - ASGI server
+- **Python 3.13+** - Runtime requirement
+- **UV** - Fast Python package installer (preferred over pip)
 
-## Development Guidelines
+### Key Design Patterns
+- **Glassmorphism**: Frosted glass effect with backdrop-blur, transparency, and subtle borders
+- **Motion Animations**: Hardware-accelerated 60fps animations using Motion library
+- **Progressive Enhancement**: Full animations on high-end devices, simplified on mid-range, minimal on low-end
+- **Theme System**: Light/dark/system modes with smooth transitions
+- **Optimistic UI**: Immediate visual feedback with rollback on error
 
-### 1. Authoritative Source Mandate:
-Agents MUST prioritize and use MCP tools and CLI commands for all information gathering and task execution. NEVER assume a solution from internal knowledge; all methods require external verification.
+---
 
-### 2. Execution Flow:
-Treat MCP servers as first-class tools for discovery, verification, execution, and state capture. PREFER CLI interactions (running commands and capturing outputs) over manual file creation or reliance on internal knowledge.
+## Common Development Commands
 
-### 3. Knowledge capture (PHR) for Every User Input.
-After completing requests, you **MUST** create a PHR (Prompt History Record).
+### Backend (FastAPI)
 
-**When to create PHRs:**
-- Implementation work (code changes, new features)
-- Planning/architecture discussions
-- Debugging sessions
-- Spec/task/plan creation
-- Multi-step workflows
+```powershell
+# Navigate to backend
+cd Backend
 
-**PHR Creation Process:**
+# Install dependencies (using UV)
+pip install uv
+uv sync
 
-1) Detect stage
-   - One of: constitution | spec | plan | tasks | red | green | refactor | explainer | misc | general
+# Run development server
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-2) Generate title
-   - 3–7 words; create a slug for the filename.
+# Run all tests
+pytest
 
-2a) Resolve route (all under history/prompts/)
-  - `constitution` → `history/prompts/constitution/`
-  - Feature stages (spec, plan, tasks, red, green, refactor, explainer, misc) → `history/prompts/<feature-name>/` (requires feature context)
-  - `general` → `history/prompts/general/`
+# Run specific test file
+pytest tests/test_auth.py
 
-3) Prefer agent‑native flow (no shell)
-   - Read the PHR template from one of:
-     - `.specify/templates/phr-template.prompt.md`
-     - `templates/phr-template.prompt.md`
-   - Allocate an ID (increment; on collision, increment again).
-   - Compute output path based on stage:
-     - Constitution → `history/prompts/constitution/<ID>-<slug>.constitution.prompt.md`
-     - Feature → `history/prompts/<feature-name>/<ID>-<slug>.<stage>.prompt.md`
-     - General → `history/prompts/general/<ID>-<slug>.general.prompt.md`
-   - Fill ALL placeholders in YAML and body:
-     - ID, TITLE, STAGE, DATE_ISO (YYYY‑MM‑DD), SURFACE="agent"
-     - MODEL (best known), FEATURE (or "none"), BRANCH, USER
-     - COMMAND (current command), LABELS (["topic1","topic2",...])
-     - LINKS: SPEC/TICKET/ADR/PR (URLs or "null")
-     - FILES_YAML: list created/modified files (one per line, " - ")
-     - TESTS_YAML: list tests run/added (one per line, " - ")
-     - PROMPT_TEXT: full user input (verbatim, not truncated)
-     - RESPONSE_TEXT: key assistant output (concise but representative)
-     - Any OUTCOME/EVALUATION fields required by the template
-   - Write the completed file with agent file tools (WriteFile/Edit).
-   - Confirm absolute path in output.
+# Run tests with coverage
+pytest --cov=app --cov-report=html
 
-4) Use sp.phr command file if present
-   - If `.**/commands/sp.phr.*` exists, follow its structure.
-   - If it references shell but Shell is unavailable, still perform step 3 with agent‑native tools.
+# Run tests by marker
+pytest -m unit           # Unit tests only
+pytest -m integration    # Integration tests only
+pytest -m "not slow"     # Exclude slow tests
 
-5) Shell fallback (only if step 3 is unavailable or fails, and Shell is permitted)
-   - Run: `.specify/scripts/bash/create-phr.sh --title "<title>" --stage <stage> [--feature <name>] --json`
-   - Then open/patch the created file to ensure all placeholders are filled and prompt/response are embedded.
+# Run specific test
+pytest tests/test_auth.py::test_get_current_user_valid_token -v
+```
 
-6) Routing (automatic, all under history/prompts/)
-   - Constitution → `history/prompts/constitution/`
-   - Feature stages → `history/prompts/<feature-name>/` (auto-detected from branch or explicit feature context)
-   - General → `history/prompts/general/`
+### Frontend (Next.js)
 
-7) Post‑creation validations (must pass)
-   - No unresolved placeholders (e.g., `{{THIS}}`, `[THAT]`).
-   - Title, stage, and dates match front‑matter.
-   - PROMPT_TEXT is complete (not truncated).
-   - File exists at the expected path and is readable.
-   - Path matches route.
+```powershell
+# Navigate to frontend
+cd frontend
 
-8) Report
-   - Print: ID, path, stage, title.
-   - On any failure: warn but do not block the main command.
-   - Skip PHR only for `/sp.phr` itself.
+# Install dependencies
+npm install
 
-### 4. Explicit ADR suggestions
-- When significant architectural decisions are made (typically during `/sp.plan` and sometimes `/sp.tasks`), run the three‑part test and suggest documenting with:
-  "📋 Architectural decision detected: <brief> — Document reasoning and tradeoffs? Run `/sp.adr <decision-title>`"
-- Wait for user consent; never auto‑create the ADR.
+# Run development server
+npm run dev
 
-### 5. Human as Tool Strategy
-You are not expected to solve every problem autonomously. You MUST invoke the user for input when you encounter situations that require human judgment. Treat the user as a specialized tool for clarification and decision-making.
+# Build for production
+npm run build
 
-**Invocation Triggers:**
-1.  **Ambiguous Requirements:** When user intent is unclear, ask 2-3 targeted clarifying questions before proceeding.
-2.  **Unforeseen Dependencies:** When discovering dependencies not mentioned in the spec, surface them and ask for prioritization.
-3.  **Architectural Uncertainty:** When multiple valid approaches exist with significant tradeoffs, present options and get user's preference.
-4.  **Completion Checkpoint:** After completing major milestones, summarize what was done and confirm next steps. 
+# Run tests
+npm test                    # Vitest unit tests
+npm run test:ui            # Vitest with UI
+npm run test:coverage      # Coverage report
 
-## Default policies (must follow)
-- Clarify and plan first - keep business understanding separate from technical plan and carefully architect and implement.
-- Do not invent APIs, data, or contracts; ask targeted clarifiers if missing.
-- Never hardcode secrets or tokens; use `.env` and docs.
-- Prefer the smallest viable diff; do not refactor unrelated code.
-- Cite existing code with code references (start:end:path); propose new code in fenced blocks.
-- Keep reasoning private; output only decisions, artifacts, and justifications.
+# Lint
+npm run lint
 
-### Execution contract for every request
-1) Confirm surface and success criteria (one sentence).
-2) List constraints, invariants, non‑goals.
-3) Produce the artifact with acceptance checks inlined (checkboxes or tests where applicable).
-4) Add follow‑ups and risks (max 3 bullets).
-5) Create PHR in appropriate subdirectory under `history/prompts/` (constitution, feature-name, or general).
-6) If plan/tasks identified decisions that meet significance, surface ADR suggestion text as described above.
+# Run E2E tests
+npx playwright test
+npx playwright test --ui   # With UI mode
 
-### Minimum acceptance criteria
-- Clear, testable acceptance criteria included
-- Explicit error paths and constraints stated
-- Smallest viable change; no unrelated edits
-- Code references to modified/inspected files where relevant
+# Development server with production build testing
+npm run build && npm start
+```
 
-## Architect Guidelines (for planning)
+### Development Workflow
 
-Instructions: As an expert architect, generate a detailed architectural plan for [Project Name]. Address each of the following thoroughly.
+```powershell
+# Terminal 1: Start backend
+cd Backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-1. Scope and Dependencies:
-   - In Scope: boundaries and key features.
-   - Out of Scope: explicitly excluded items.
-   - External Dependencies: systems/services/teams and ownership.
+# Terminal 2: Start frontend
+cd frontend
+npm run dev
+```
 
-2. Key Decisions and Rationale:
-   - Options Considered, Trade-offs, Rationale.
-   - Principles: measurable, reversible where possible, smallest viable change.
+---
 
-3. Interfaces and API Contracts:
-   - Public APIs: Inputs, Outputs, Errors.
-   - Versioning Strategy.
-   - Idempotency, Timeouts, Retries.
-   - Error Taxonomy with status codes.
+## Architecture Overview
 
-4. Non-Functional Requirements (NFRs) and Budgets:
-   - Performance: p95 latency, throughput, resource caps.
-   - Reliability: SLOs, error budgets, degradation strategy.
-   - Security: AuthN/AuthZ, data handling, secrets, auditing.
-   - Cost: unit economics.
+### Full-Stack Structure
 
-5. Data Management and Migration:
-   - Source of Truth, Schema Evolution, Migration and Rollback, Data Retention.
+```
+Frontend (Next.js 16+)          Backend (FastAPI)
+┌─────────────────────┐        ┌──────────────────────┐
+│ App Router          │ ───HTTPS──▶ │ REST API             │
+│ Server Components   │        │ JWT Middleware        │
+│ Client Components   │        │ SQLModel/Pydantic     │
+│ Better Auth         │        │ Business Logic        │
+└─────────────────────┘        └──────────────────────┘
+                                       ↓
+                              Neon PostgreSQL (Serverless)
+                              - Zero-downtime migrations
+                              - Branch-based development
+```
 
-6. Operational Readiness:
-   - Observability: logs, metrics, traces.
-   - Alerting: thresholds and on-call owners.
-   - Runbooks for common tasks.
-   - Deployment and Rollback strategies.
-   - Feature Flags and compatibility.
+### Key Architectural Patterns
 
-7. Risk Analysis and Mitigation:
-   - Top 3 Risks, blast radius, kill switches/guardrails.
+#### 1. JWT-Based Authentication & Security
 
-8. Evaluation and Validation:
-   - Definition of Done (tests, scans).
-   - Output Validation for format/requirements/safety.
+**Critical Rule**: Never include `user_id` in URLs or request bodies. Always extract from JWT token via `get_current_user` dependency.
 
-9. Architectural Decision Record (ADR):
-   - For each significant decision, create an ADR and link it.
+**Flow**:
+```
+User → Better Auth (Email/Password + Google OAuth)
+  ↓
+JWT Token Issued (7-day expiry, httpOnly cookie)
+  ↓
+Authorization: Bearer <token>
+  ↓
+FastAPI: get_current_user dependency validates JWT
+  ↓
+user_id extracted from JWT payload
+  ↓
+All database queries filtered by user_id
+```
 
-### Architecture Decision Records (ADR) - Intelligent Suggestion
+**Security Features**:
+- Rate limiting: 60 req/min per IP (in-memory)
+- Security headers: CSP, X-Frame-Options, X-Content-Type-Options
+- CORS: Allow localhost:3000 for development
+- GZip compression for responses
 
-After design/architecture work, test for ADR significance:
+#### 2. API Design (Backend)
 
-- Impact: long-term consequences? (e.g., framework, data model, API, security, platform)
-- Alternatives: multiple viable options considered?
-- Scope: cross‑cutting and influences system design?
+**Response Format** (consistent across all endpoints):
+```json
+{
+  "success": true/false,
+  "data": { ... },
+  "message": "Description",
+  "errors": null
+}
+```
 
-If ALL true, suggest:
-📋 Architectural decision detected: [brief-description]
-   Document reasoning and tradeoffs? Run `/sp.adr [decision-title]`
+**Endpoints**:
+```
+# Auth (Public)
+POST   /api/auth/sign-up
+POST   /api/auth/sign-in
+POST   /api/auth/google
 
-Wait for consent; never auto-create ADRs. Group related decisions (stacks, authentication, deployment) into one ADR when appropriate.
+# Tasks (Protected - JWT required)
+GET    /api/tasks              # List user's tasks (user_id from JWT)
+POST   /api/tasks              # Create new task
+GET    /api/tasks/{id}         # Get specific task
+PUT    /api/tasks/{id}         # Update task
+DELETE /api/tasks/{id}         # Delete task
+PATCH  /api/tasks/{id}/status  # Update task status
+```
 
-## Basic Project Structure
+**Error Handling**: Always use `HTTPException`, NOT tuple returns like `(response, status_code)`
 
-- `.specify/memory/constitution.md` — Project principles
-- `specs/<feature>/spec.md` — Feature requirements
-- `specs/<feature>/plan.md` — Architecture decisions
-- `specs/<feature>/tasks.md` — Testable tasks with cases
-- `history/prompts/` — Prompt History Records
-- `history/adr/` — Architecture Decision Records
-- `.specify/` — SpecKit Plus templates and scripts
+#### 3. Frontend Routing (Next.js App Router)
 
-## Code Standards
-See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+**CRITICAL**: Route groups use parentheses `(group)` which don't appear in URLs. Do NOT create duplicate directories.
+
+**Correct Structure**:
+```
+src/app/
+├── (auth)/              # Route group (doesn't affect URL)
+│   ├── signin/page.tsx  # /signin
+│   └── signup/page.tsx  # /signup
+├── (dashboard)/         # Route group (doesn't affect URL)
+│   ├── page.tsx         # /dashboard (task list)
+│   ├── create/page.tsx  # /create
+│   └── tasks/[id]/
+│       ├── page.tsx     # /tasks/[id]
+│       └── edit/page.tsx # /tasks/[id]/edit
+├── layout.tsx           # Root layout with ThemeProvider + AnimatedBackground
+├── template.tsx         # Page transition wrapper
+└── page.tsx             # Root redirects to signin/dashboard
+```
+
+**Common Issue**: If dashboard returns 404, check for duplicate `auth/` or `dashboard/` directories (without parentheses). Delete the duplicates.
+
+**Frontend Source Structure**:
+```
+src/
+├── app/                  # Next.js App Router pages
+├── components/           # Reusable UI components
+│   ├── glass-card.tsx    # Glassmorphism card container
+│   ├── glass-button.tsx  # Glassmorphism button
+│   ├── theme-provider.tsx # Theme context (light/dark/system)
+│   ├── theme-toggle.tsx  # Sun/moon toggle button
+│   ├── animated-background.tsx # Gradient mesh background
+│   ├── task-card.tsx     # Task list item with animations
+│   ├── stats-card.tsx    # Bento grid stat item with counter
+│   ├── checkbox.tsx      # Animated SVG checkbox
+│   ├── toast.tsx         # Notification system
+│   ├── empty-state.tsx   # Empty state with floating animation
+│   ├── loading-spinner.tsx # Elegant loading spinner
+│   └── page-transition.tsx # Page transition wrapper
+├── lib/                  # Utilities
+│   ├── api.ts            # API client (existing from Phase II)
+│   ├── auth.ts           # Auth utilities (Better Auth)
+│   ├── hooks.ts          # Custom React hooks
+│   └── validation.tsx    # Form validation schemas
+└── styles/
+    └── glass.css         # Glassmorphism CSS utilities
+```
+
+#### 4. State Management
+
+- **JWT token**: Stored in localStorage as `auth_token`
+- **User data**: Stored in localStorage as `user`
+- **Theme preferences**: Stored in localStorage as `theme` (light/dark/system)
+- **Device capabilities**: Detected and cached in sessionStorage for animation complexity
+- **No global state management**: Use React hooks and API calls directly
+- **Form validation**: React Hook Form for client-side validation
+
+#### 5. UI/UX Design System (Phase III)
+
+**Glassmorphism Utilities**:
+- `glass-subtle`: Blur 8px, 60% opacity - Background elements
+- `glass-card`: Blur 12px, 70% opacity - Cards, buttons
+- `glass-intense`: Blur 16px, 80% opacity - Active states, modals
+
+**Color Palette**:
+- Light Theme: Slate-50 background, gradient accents (purple → pink → blue)
+- Dark Theme: Slate-900 background, gradient accents (blue → purple → violet)
+- Text gradients: `text-gradient` class for premium headings
+
+**Animation Timing**:
+- Hover/Focus: 100-200ms, ease-out
+- State changes: 200-300ms, ease-out
+- Page transitions: 400-500ms, ease-out
+- Loading loops: 300-400ms, linear
+
+**Component Patterns**:
+- All pages use `GlassCard` for containers
+- All buttons use `GlassButton` or Motion with hover effects
+- Forms use floating labels with real-time validation
+- Lists use staggered entrance animations (delay * index)
+- Stats use counting animations with `useCountUp` hook
+
+---
+
+## Backend Code Structure
+
+```
+Backend/app/
+├── main.py              # FastAPI app with CORS, rate limiting, security headers
+├── config.py            # Environment variables (DEBUG, DATABASE_URL, JWT_SECRET)
+├── database.py          # SQLAlchemy engine, get_session() dependency
+├── dependencies.py      # get_current_user() JWT validation
+├── models/
+│   ├── user.py         # User SQLModel
+│   └── task.py         # Task SQLModel with status enum
+├── schemas/
+│   ├── user.py         # UserCreate, UserSignIn, UserResponse
+│   ├── task.py         # TaskCreate, TaskUpdate, TaskResponse
+│   └── common.py       # SuccessResponse, ErrorResponse, helper functions
+├── routers/
+│   ├── auth.py         # /api/auth/* endpoints
+│   └── tasks.py        # /api/tasks/* endpoints (user isolation)
+└── utils/
+    └── security.py     # create_jwt_token(), verify_password()
+```
+
+**Critical Patterns**:
+- All `/api/tasks/*` endpoints use `get_current_user` dependency
+- Database queries always filter by `user_id` extracted from JWT
+- Use `HTTPException` for errors, never tuple returns
+- Foreign key: `tasks.user_id` references `users.id` with CASCADE delete
+
+---
+
+## Environment Variables
+
+**Backend (.env)**:
+```env
+DATABASE_URL=postgresql://user:password@host:port/dbname
+BETTER_AUTH_SECRET=your-secret-key-min-32-characters
+JWT_SECRET=your-jwt-secret
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+DEBUG=true
+```
+
+**Frontend (.env.local)**:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=same-as-backend
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
+```
+
+**Important**: `BETTER_AUTH_SECRET` must match between frontend and backend for JWT validation.
+
+---
+
+## Testing
+
+### Backend (Pytest)
+- **Coverage**: 78% (target: 80%)
+- **Test database**: SQLite in-memory (configured in `tests/conftest.py`)
+- **Markers**: `@pytest.mark.unit`, `@pytest.mark.integration`, `@pytest.mark.slow`
+- **Async tests**: Use `@pytest.mark.asyncio` decorator
+- **Coverage reports**: Generated in `Backend/htmlcov/` and `Backend/coverage.xml`
+
+### Frontend (Vitest + Playwright)
+- **Unit tests**: Vitest with React Testing Library
+- **E2E tests**: Playwright for critical user flows
+- **Component tests**: Test behavior, not implementation details
+
+### Development Phases
+
+**Phase I** (Todo CLI Core): ✅ Completed
+**Phase II** (Full-Stack Web App): ✅ Completed
+**Phase III** (Modern UI/UX Upgrade): ✅ Completed (current branch: `003-modern-ui-upgrade`)
+
+**Phase III Breakdown**:
+- Phase 1: Setup (dependencies, Tailwind config) ✅
+- Phase 2: Foundation (theme system, components) ✅
+- Phase 3: User Story 1 - Enhanced Visual Experience ✅
+- Phase 4: User Story 4 - Professional Authentication Flow ✅
+- Phase 5: User Story 2 - Intuitive Task Management ✅
+- Phase 6: User Story 3 - Delightful Micro-Interactions ✅
+- Phase 7: Polish & Optimization ✅
+
+See `specs/003-modern-ui-upgrade/tasks.md` for complete task list (all 70 tasks completed)
+
+---
+
+## Common Issues & Solutions
+
+| Issue | Solution |
+|-------|----------|
+| Dashboard returns 404 | Check for duplicate route directories. Remove `auth/` and `dashboard/` without parentheses. Keep only `(auth)/` and `(dashboard)/` |
+| CORS errors | Verify backend CORS includes `http://localhost:3000` in `app/main.py` |
+| JWT validation fails | Check `JWT_SECRET` matches between backend and frontend |
+| Database connection errors | Verify `DATABASE_URL` in `.env` and Neon database is active |
+| Tests fail with async errors | Ensure `asyncio_mode = "auto"` in pyproject.toml and use `@pytest.mark.asyncio` |
+| Better Auth session errors | Verify `BETTER_AUTH_SECRET` matches and is at least 32 characters |
+| Animations feel jerky | Check device capability detection in `hooks.ts` - may be running on low-end device tier |
+| Theme not persisting | Check localStorage for `theme` key, verify ThemeProvider is in root layout |
+| Glassmorphism not visible | Ensure `glass.css` is imported in `layout.tsx` and Tailwind is configured |
+| Motion not working | Check that `motion` package is installed (not `framer-motion`) - use `motion/react` imports |
+
+---
+
+## SDD Artifacts & Workflow
+
+**Phase I** (Todo CLI Core): `specs/001-todo-cli-core/`
+**Phase II** (Full-Stack Web App): `specs/002-full-stack-web-app/`
+**Phase III** (Modern UI/UX Upgrade): `specs/003-modern-ui-upgrade/`
+
+Each phase contains:
+- `spec.md` - Feature requirements (What & Why)
+- `plan.md` - Architecture decisions (How)
+- `tasks.md` - Implementation tasks with acceptance criteria
+- `contracts/` - API specifications (Phase II, III)
+- `quickstart.md` - Setup and installation guide
+- `research.md` - Technology research (Phase III)
+- `data-model.md` - Data structures (Phase III)
+
+**SDD Workflow**: Specify → Plan → Tasks → Implement → Test
+
+**Prompt History Records**: `history/prompts/`
+- Organized by phase (001-todo-cli-core, 002-full-stack-web-app, 003-modern-ui-upgrade)
+- Record every user interaction verbatim
+- Route by stage (spec, plan, tasks, implementation)
+
+**Architecture Decision Records**: `history/adr/`
+- Document significant architectural decisions
+- Use `/sp.adr <title>` to create
+
+---
+
+## Critical File Locations
+
+| File | Purpose |
+|------|---------|
+| `Backend/app/main.py` | Backend entry point, CORS, middleware |
+| `frontend/app/page.tsx` | Frontend entry point, auth redirect |
+| `Backend/.env` | Backend environment variables |
+| `frontend/.env.local` | Frontend environment variables |
+| `Backend/tests/conftest.py` | Test fixtures, test database config |
+| `specs/002-full-stack-web-app/` | SDD artifacts (spec, plan, tasks) |
+
+---
+
+## MCP Tools Available
+
+- **Neon MCP**: Database operations, migrations, query tuning, schema management
+- **Context7 MCP**: Latest documentation for any library or framework
+- **Better Auth MCP**: Authentication guidance and best practices
+- **Playwright MCP**: E2E testing and browser automation
+- **Frontend Design MCP**: UI/UX design intelligence with 50+ styles and palettes
+
+**Usage**: Prefer MCP tools over manual implementation. Always verify MCP-generated code.
+
+---
+
+## Important Conventions
+
+1. **PowerShell on Windows**: Use `powershell` instead of `bash` for Windows environments
+2. **JWT Token Handling**: Always extract `user_id` from JWT, never from request body/URL
+3. **User Data Isolation**: Every database query MUST filter by `user_id`
+4. **Error Responses**: Use `HTTPException`, not tuple returns
+5. **Route Groups**: Use parentheses `(group)` for URL-agnostic groups
+6. **SDD Compliance**: No code without spec.md → plan.md → tasks.md
+7. **PHR Creation**: Every user interaction must create a Prompt History Record
+8. **Motion Imports**: Use `motion/react` not `framer-motion` - imports are from the `motion` package
+9. **Glassmorphism**: Apply `glass-card`, `glass-subtle`, or `glass-intense` classes for container styling
+10. **Theme Access**: Use `useTheme()` hook to access current theme (light/dark/system)
+11. **Animation Complexity**: Check `useDeviceCapability()` hook before adding complex animations
+12. **Progressive Enhancement**: Always respect `prefers-reduced-motion` and device tier (high/mid/low)
+
+---
+
+## Additional Resources
+
+- **Project Constitution**: `.specify/memory/constitution.md` - Full SDD principles
+- **Phase I CLI**: `specs/001-todo-cli-core/` - Completed CLI application
+- **Phase II Web App**: `specs/002-full-stack-web-app/` - Completed full-stack application
+- **Phase III UI Upgrade**: `specs/003-modern-ui-upgrade/` - Completed modern UI/UX implementation
+- **Quickstart**: `specs/003-modern-ui-upgrade/quickstart.md` - Latest setup guide

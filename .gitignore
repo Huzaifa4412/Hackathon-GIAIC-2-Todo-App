@@ -76,5 +76,22 @@ nul
 # SpecKit Plus
 .specify/memory/
 
+# Node.js / Frontend
+node_modules/
+.next/
+out/
+dist/
+build/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # Development
 main.py
