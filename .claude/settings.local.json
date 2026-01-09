@@ -58,7 +58,9 @@
       "Skill(superpowers:brainstorming)",
       "Skill(frontend-design:frontend-design)",
       "Bash(powershell -Command:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(vercel:*)",
+      "Bash(timeout:*)"
     ]
   }
 }
