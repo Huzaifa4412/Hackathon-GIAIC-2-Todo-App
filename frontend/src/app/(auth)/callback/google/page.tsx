@@ -19,28 +19,59 @@ function GoogleCallbackContent() {
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
   const [message, setMessage] = useState("Signing you in...")
+  const [processed, setProcessed] = useState(false)
 
   useEffect(() => {
+    // Prevent double processing
+    if (processed) return
+    setProcessed(true)
+
+    const code = searchParams.get("code")
+    const state = searchParams.get("state")
+    const error = searchParams.get("error")
+    const token = searchParams.get("token")
+    const userParam = searchParams.get("user")
+
+    // Case 1: Backend already processed and returned token/user directly
+    // This happens when the backend HTML redirect lands on this page
+    if (token && userParam) {
+      try {
+        const user = JSON.parse(decodeURIComponent(userParam))
+        localStorage.setItem("auth_token", token)
+        localStorage.setItem("user", JSON.stringify(user))
+        setStatus("success")
+        setMessage("Sign in successful! Redirecting...")
+
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 500)
+      } catch (parseError) {
+        console.error("Error parsing user data:", parseError)
+        setStatus("error")
+        setMessage("Invalid user data. Please try again.")
+        setTimeout(() => router.push("/signin"), 3000)
+      }
+      return
+    }
+
+    // Case 2: User denied access
+    if (error) {
+      setStatus("error")
+      setMessage("Sign in was cancelled. Please try again.")
+      setTimeout(() => router.push("/signin"), 3000)
+      return
+    }
+
+    // Case 3: No code parameter - authorization failed
+    if (!code) {
+      setStatus("error")
+      setMessage("Authorization failed. Please try again.")
+      setTimeout(() => router.push("/signin"), 3000)
+      return
+    }
+
+    // Case 4: Forward the callback to the backend
     const handleCallback = async () => {
-      const code = searchParams.get("code")
-      const state = searchParams.get("state")
-      const error = searchParams.get("error")
-
-      // Check if user denied access
-      if (error) {
-        setStatus("error")
-        setMessage("Sign in was cancelled. Please try again.")
-        setTimeout(() => router.push("/signin"), 3000)
-        return
-      }
-
-      if (!code) {
-        setStatus("error")
-        setMessage("Authorization failed. Please try again.")
-        setTimeout(() => router.push("/signin"), 3000)
-        return
-      }
-
       try {
         // Forward the callback to the backend
         const response = await fetch(
@@ -76,13 +107,13 @@ function GoogleCallbackContent() {
             if (match && match[1]) {
               // This is an HTML redirect, parse the token and user from URL
               const url = new URL(match[1], window.location.origin)
-              const token = url.searchParams.get("token")
-              const userParam = url.searchParams.get("user")
+              const redirectToken = url.searchParams.get("token")
+              const redirectUserParam = url.searchParams.get("user")
 
-              if (token && userParam) {
+              if (redirectToken && redirectUserParam) {
                 try {
-                  const user = JSON.parse(decodeURIComponent(userParam))
-                  localStorage.setItem("auth_token", token)
+                  const user = JSON.parse(decodeURIComponent(redirectUserParam))
+                  localStorage.setItem("auth_token", redirectToken)
                   localStorage.setItem("user", JSON.stringify(user))
                   setStatus("success")
                   setMessage("Sign in successful! Redirecting...")
@@ -92,12 +123,13 @@ function GoogleCallbackContent() {
                   }, 500)
                 } catch (parseError) {
                   console.error("Error parsing user data:", parseError)
-                  // Fallback: just redirect to dashboard
-                  router.push("/dashboard")
+                  setStatus("error")
+                  setMessage("Error processing sign in. Please try again.")
+                  setTimeout(() => router.push("/signin"), 3000)
                 }
               } else {
-                // Redirect to the dashboard
-                router.push("/dashboard")
+                // No token in redirect URL, just follow the redirect
+                window.location.href = match[1]
               }
             } else {
               setStatus("error")
@@ -121,33 +153,7 @@ function GoogleCallbackContent() {
     }
 
     handleCallback()
-  }, [searchParams, router])
-
-  // Also check for token in URL (from backend redirect)
-  useEffect(() => {
-    const token = searchParams.get("token")
-    const userParam = searchParams.get("user")
-
-    if (token && userParam) {
-      try {
-        const user = JSON.parse(decodeURIComponent(userParam))
-        localStorage.setItem("auth_token", token)
-        localStorage.setItem("user", JSON.stringify(user))
-        setStatus("success")
-        setMessage("Sign in successful! Redirecting...")
-
-        // Clean URL and redirect to dashboard
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 500)
-      } catch (error) {
-        console.error("Error parsing user data:", error)
-        setStatus("error")
-        setMessage("Invalid user data. Please try again.")
-        setTimeout(() => router.push("/signin"), 3000)
-      }
-    }
-  }, [searchParams, router])
+  }, [searchParams, router, processed])
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-[#050505]">
