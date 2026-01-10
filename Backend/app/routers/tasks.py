@@ -25,6 +25,20 @@ from app.models.task import Task, TaskStatus
 router = APIRouter()
 
 
+@router.options("")
+async def options_list_tasks():
+    """Handle OPTIONS request for tasks list preflight."""
+    from fastapi.responses import Response
+    return Response(status_code=200)
+
+
+@router.options("/{task_id}")
+async def options_task_detail():
+    """Handle OPTIONS request for task detail preflight."""
+    from fastapi.responses import Response
+    return Response(status_code=200)
+
+
 def generate_task_id() -> str:
     """Generate unique task ID (MVP - replace with nanoid or ULID)."""
     return f"tsk_{int(datetime.utcnow().timestamp() * 1000000)}"

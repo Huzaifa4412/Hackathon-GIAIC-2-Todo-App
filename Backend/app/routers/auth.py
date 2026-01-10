@@ -41,6 +41,34 @@ def verify_password(password: str, hashed: str) -> bool:
 router = APIRouter()
 
 
+@router.options("/sign-up")
+async def options_sign_up():
+    """Handle OPTIONS request for sign-up preflight."""
+    from fastapi.responses import Response
+    return Response(status_code=200)
+
+
+@router.options("/sign-in")
+async def options_sign_in():
+    """Handle OPTIONS request for sign-in preflight."""
+    from fastapi.responses import Response
+    return Response(status_code=200)
+
+
+@router.options("/sign-in/google")
+async def options_google_sign_in():
+    """Handle OPTIONS request for Google sign-in preflight."""
+    from fastapi.responses import Response
+    return Response(status_code=200)
+
+
+@router.options("/callback/google")
+async def options_google_callback():
+    """Handle OPTIONS request for Google callback preflight."""
+    from fastapi.responses import Response
+    return Response(status_code=200)
+
+
 @router.post("/sign-up", status_code=status.HTTP_201_CREATED)
 async def sign_up(
     user_data: UserCreate,

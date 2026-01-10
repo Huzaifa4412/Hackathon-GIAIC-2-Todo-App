@@ -73,7 +73,8 @@
       "Bash(do taskkill:*)",
       "Bash(done:*)",
       "Bash(git reset:*)",
-      "Bash(vercel --version:*)"
+      "Bash(vercel --version:*)",
+      "mcp__Neon__list_projects"
     ]
   }
 }
