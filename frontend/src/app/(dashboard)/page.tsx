@@ -209,44 +209,46 @@ export default function DashboardPage() {
   ] as const
 
   return (
-    <div className="min-h-screen px-4 py-12 bg-[#050505]">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 bg-[#050505]">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-          className="flex items-center justify-between mb-12"
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10 sm:mb-12"
         >
-          <div>
-            <h1 className="font-heading text-5xl font-bold text-white tracking-tight mb-2">
+          <div className="flex-1">
+            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-2 sm:mb-3">
               Dashboard
             </h1>
-            <p className="text-sm text-[#a0a0a0] font-medium tracking-wide uppercase">
+            <p className="text-xs sm:text-sm text-[#a0a0a0] font-medium tracking-wide uppercase">
               Manage your tasks efficiently
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <Link
               href="/dashboard/create"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] transition-colors duration-150"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] transition-colors duration-150 cursor-pointer"
             >
               <Plus className="h-4 w-4" strokeWidth={2.5} />
-              <span>New Task</span>
+              <span className="hidden sm:inline">New Task</span>
+              <span className="sm:hidden">Task</span>
             </Link>
             <motion.button
               onClick={handleLogout}
-              className="p-2.5 rounded-lg bg-[#111111] border border-[#333333] text-[#a0a0a0] hover:text-white hover:border-[#444444] transition-all duration-150"
+              className="p-2.5 sm:p-3 rounded-lg bg-[#111111] border border-[#333333] text-[#a0a0a0] hover:text-white hover:border-[#444444] hover:bg-[#1a1a1a] transition-all duration-150 cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              aria-label="Logout"
             >
-              <LogOut className="h-5 w-5" strokeWidth={2} />
+              <LogOut className="h-5 w-5 sm:h-5 sm:w-5" strokeWidth={2} />
             </motion.button>
           </div>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 mb-6 sm:mb-8">
           <StatsCard
             title="Total Tasks"
             value={totalTasks}
@@ -275,26 +277,26 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <GlassCard className="p-5">
-            <form onSubmit={handleQuickAdd} className="flex gap-3">
+          <GlassCard className="p-4 sm:p-5">
+            <form onSubmit={handleQuickAdd} className="flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
                 value={quickAddTitle}
                 onChange={(e) => setQuickAddTitle(e.target.value)}
                 placeholder="Quick add a task..."
-                className="flex-1 bg-[#050505] border border-[#222222] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#ff4d00] focus:shadow-[0_0_0_3px_rgba(255,77,0,0.1)] transition-all duration-150 placeholder:text-[#505050]"
+                className="flex-1 bg-[#050505] border border-[#222222] text-white px-4 py-3 rounded-lg focus:outline-none focus:border-[#ff4d00] focus:shadow-[0_0_0_3px_rgba(255,77,0,0.1)] transition-all duration-150 placeholder:text-[#505050] min-w-0"
               />
               <motion.button
                 type="submit"
                 disabled={!quickAddTitle.trim()}
-                className="px-6 py-3 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 flex items-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 flex items-center justify-center gap-2 cursor-pointer"
                 whileHover={quickAddTitle.trim() ? { scale: 1.02 } : {}}
                 whileTap={{ scale: 0.98 }}
               >
                 <Plus className="h-4 w-4" strokeWidth={2.5} />
-                Add
+                <span>Add</span>
               </motion.button>
             </form>
           </GlassCard>
@@ -305,23 +307,23 @@ export default function DashboardPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-          className="mb-6"
+          className="mb-6 sm:mb-8 overflow-x-auto overflow-y-hidden -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-hide"
         >
-          <div className="relative flex gap-1 p-1 bg-[#0a0a0a] border border-[#222222] rounded-lg inline-flex">
+          <div className="relative flex gap-1 p-1 bg-[#0a0a0a] border border-[#222222] rounded-lg inline-flex min-w-max sm:min-w-0">
             {filterTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setFilter(tab.id)}
                 className={`
-                  relative px-6 py-2.5 rounded-md text-sm font-semibold transition-all duration-200
+                  relative px-4 sm:px-6 py-2 sm:py-2.5 rounded-md text-sm font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer
                   ${filter === tab.id
                     ? 'text-white'
                     : 'text-[#a0a0a0] hover:text-white'
                   }
                 `}
               >
-                {tab.label}
-                <span className="ml-2 text-xs opacity-75">({tab.count})</span>
+                <span className="relative z-10">{tab.label}</span>
+                <span className="ml-1.5 sm:ml-2 text-xs opacity-75 relative z-10">({tab.count})</span>
                 {filter === tab.id && (
                   <motion.div
                     layoutId="activeTab"
@@ -336,7 +338,7 @@ export default function DashboardPage() {
 
         {/* Task List */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-16 sm:py-20">
             <motion.div
               className="h-12 w-12 border-4 border-[#ff4d00] border-t-transparent rounded-full"
               animate={{ rotate: 360 }}
@@ -347,7 +349,7 @@ export default function DashboardPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0a0a0a] border border-[#ff4444] text-[#ff4444] px-4 py-3 rounded-lg font-medium"
+            className="bg-[#0a0a0a] border border-[#ff4444] text-[#ff4444] px-4 sm:px-6 py-3 sm:py-4 rounded-lg font-medium"
           >
             {error}
           </motion.div>
@@ -355,15 +357,15 @@ export default function DashboardPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-16"
+            className="text-center py-16 sm:py-20"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-[#111111] border border-[#333333] mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-[#111111] border border-[#333333] mb-4 sm:mb-6">
               <CheckCircle2 className="h-8 w-8 text-[#ff4d00]" strokeWidth={2} />
             </div>
-            <h3 className="font-heading text-lg font-semibold text-white mb-2">
+            <h3 className="font-heading text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
               No tasks found
             </h3>
-            <p className="text-[#a0a0a0] mb-6">
+            <p className="text-sm sm:text-base text-[#a0a0a0] mb-6 sm:mb-8 px-4">
               {filter === 'completed'
                 ? "You haven't completed any tasks yet"
                 : filter === 'pending'
@@ -372,14 +374,14 @@ export default function DashboardPage() {
             </p>
             <Link
               href="/dashboard/create"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] transition-colors duration-150"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] transition-colors duration-150 cursor-pointer"
             >
               <Plus className="h-4 w-4" strokeWidth={2.5} />
               Create Task
             </Link>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             <AnimatePresence mode="popLayout">
               {tasks.map((task, index) => (
                 <TaskCard
