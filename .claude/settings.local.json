@@ -75,7 +75,10 @@
       "Bash(git reset:*)",
       "Bash(vercel --version:*)",
       "mcp__Neon__list_projects",
-      "Skill(ui-ux-pro-max)"
+      "Skill(ui-ux-pro-max)",
+      "Bash(Select-Object FullName)",
+      "Bash(npm run build)",
+      "Bash(npx vercel:*)"
     ]
   }
 }
