@@ -8,3 +8,4 @@ psycopg[binary]
 psycopg2-binary
 email-validator
 python-dotenv
+httpx

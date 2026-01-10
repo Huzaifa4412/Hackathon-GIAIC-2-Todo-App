@@ -18,6 +18,9 @@ BETTER_AUTH_SECRET: str = os.getenv(
     "your-secret-key-min-32-characters-long"
 )
 
+# JWT Secret (for token generation - can be same as BETTER_AUTH_SECRET)
+JWT_SECRET: str = os.getenv("JWT_SECRET", BETTER_AUTH_SECRET)
+
 # Google OAuth (optional)
 GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET: str | None = os.getenv("GOOGLE_CLIENT_SECRET")
