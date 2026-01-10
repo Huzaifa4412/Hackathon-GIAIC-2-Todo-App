@@ -302,6 +302,7 @@ async def google_sign_in(request: Request):
 async def google_callback(
     code: str,
     state: str,
+    request: Request,
     session: Annotated[Session, Depends(get_session)]
 ):
     """
@@ -325,13 +326,26 @@ async def google_callback(
     try:
         import httpx
 
+        # Get the same frontend URL that was used in the initial OAuth request
+        # Check Referer header to determine which frontend initiated the request
+        referer = request.headers.get("Referer", "")
+        if "localhost:3000" in referer or "localhost:3001" in referer:
+            frontend_url = "http://localhost:3000"
+        elif "frontend-omega-eight-86.vercel.app" in referer:
+            frontend_url = "https://frontend-omega-eight-86.vercel.app"
+        else:
+            # Default to production URL
+            frontend_url = "https://frontend-omega-eight-86.vercel.app"
+
+        redirect_uri = f"{frontend_url}/auth/callback/google"
+
         # Exchange authorization code for access token
         token_url = "https://oauth2.googleapis.com/token"
         token_data = {
             "code": code,
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": "https://frontend-omega-eight-86.vercel.app/auth/callback/google",
+            "redirect_uri": redirect_uri,
             "grant_type": "authorization_code",
         }
 
@@ -399,7 +413,7 @@ async def google_callback(
         user_response = UserResponse.model_validate(user)
 
         # Return HTML page that redirects to frontend with token
-        frontend_url = "https://frontend-omega-eight-86.vercel.app"
+        # Use the same frontend_url determined earlier
         html_content = f"""
         <!DOCTYPE html>
         <html>
