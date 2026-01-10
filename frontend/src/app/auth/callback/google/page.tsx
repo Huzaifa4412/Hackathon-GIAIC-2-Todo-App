@@ -24,6 +24,15 @@ function GoogleCallbackContent() {
     const handleCallback = async () => {
       const code = searchParams.get("code")
       const state = searchParams.get("state")
+      const error = searchParams.get("error")
+
+      // Check if user denied access
+      if (error) {
+        setStatus("error")
+        setMessage("Sign in was cancelled. Please try again.")
+        setTimeout(() => router.push("/signin"), 3000)
+        return
+      }
 
       if (!code) {
         setStatus("error")
@@ -35,22 +44,70 @@ function GoogleCallbackContent() {
       try {
         // Forward the callback to the backend
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "https://todo-backend-api-pi.vercel.app"}/api/auth/callback/google?code=${code}&state=${state || ""}`
+          `${process.env.NEXT_PUBLIC_API_URL || "https://todo-backend-api-pi.vercel.app"}/api/auth/callback/google?code=${code}&state=${state || ""}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'text/html, application/json',
+            },
+          }
         )
 
         if (response.ok) {
-          // The backend returns an HTML page that handles the redirect
-          // We need to parse and execute it
-          const html = await response.text()
+          const contentType = response.headers.get("content-type")
 
-          // Create a temporary div to execute the script
-          const div = document.createElement("div")
-          div.innerHTML = html
-          document.body.appendChild(div)
+          if (contentType && contentType.includes("application/json")) {
+            // Handle JSON response
+            const data = await response.json()
+            if (data.success && data.data?.url) {
+              // Redirect to the URL (which should handle the token)
+              window.location.href = data.data.url
+            } else {
+              setStatus("error")
+              setMessage("Sign in failed. Please try again.")
+              setTimeout(() => router.push("/signin"), 3000)
+            }
+          } else {
+            // Handle HTML response - extract redirect from script
+            const html = await response.text()
 
-          setStatus("success")
-          setMessage("Sign in successful!")
+            // Extract the redirect URL from the HTML
+            const match = html.match(/window\.location\.href\s*=\s*["']([^"']+)["']/)
+            if (match && match[1]) {
+              // This is an HTML redirect, parse the token and user from URL
+              const url = new URL(match[1], window.location.origin)
+              const token = url.searchParams.get("token")
+              const userParam = url.searchParams.get("user")
+
+              if (token && userParam) {
+                try {
+                  const user = JSON.parse(decodeURIComponent(userParam))
+                  localStorage.setItem("auth_token", token)
+                  localStorage.setItem("user", JSON.stringify(user))
+                  setStatus("success")
+                  setMessage("Sign in successful! Redirecting...")
+
+                  setTimeout(() => {
+                    router.push("/dashboard")
+                  }, 500)
+                } catch (parseError) {
+                  console.error("Error parsing user data:", parseError)
+                  // Fallback: just redirect to dashboard
+                  router.push("/dashboard")
+                }
+              } else {
+                // Redirect to the dashboard
+                router.push("/dashboard")
+              }
+            } else {
+              setStatus("error")
+              setMessage("Invalid response from server.")
+              setTimeout(() => router.push("/signin"), 3000)
+            }
+          }
         } else {
+          const errorText = await response.text()
+          console.error("Backend error:", errorText)
           setStatus("error")
           setMessage("Sign in failed. Please try again.")
           setTimeout(() => router.push("/signin"), 3000)
