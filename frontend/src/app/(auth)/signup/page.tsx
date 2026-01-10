@@ -116,10 +116,42 @@ export default function SignUpPage() {
     }
   }
 
-  const handleGoogleSignUp = () => {
-    // Redirect to backend Google OAuth endpoint
-    const googleUrl = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/sign-in/google`
-    window.location.href = googleUrl
+  const handleGoogleSignUp = async () => {
+    try {
+      setError("")
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || "https://todo-backend-api-pi.vercel.app"}/api/auth/sign-in/google`
+      console.log("Initiating Google sign-up to:", apiUrl)
+
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      })
+
+      console.log("Response status:", response.status)
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log("Response data:", data)
+
+        if (data.success && data.data?.url) {
+          console.log("Redirecting to:", data.data.url)
+          // Redirect to Google OAuth URL
+          window.location.href = data.data.url
+        } else {
+          console.error("Invalid response format:", data)
+          setError("Failed to initiate Google sign-up")
+        }
+      } else {
+        const errorText = await response.text()
+        console.error("Server error:", errorText)
+        setError("Failed to connect to authentication server")
+      }
+    } catch (err) {
+      console.error("Google sign-up error:", err)
+      setError("Network error. Please try again.")
+    }
   }
 
   return (
