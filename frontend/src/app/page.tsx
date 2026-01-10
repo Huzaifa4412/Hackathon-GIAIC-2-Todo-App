@@ -256,11 +256,12 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#ff4d00] rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 bg-[#ff4d00] rounded-xl flex items-center justify-center shadow-lg shadow-[#ff4d00]/30">
+                <CheckCircle2 className="h-6 w-6 text-white" strokeWidth={2.5} />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-xl" />
               </div>
-              <span className="text-xl font-bold text-white">TodoApp</span>
+              <span className="text-xl font-bold text-white tracking-tight">TodoApp</span>
             </div>
 
             {/* Desktop Nav */}
@@ -279,26 +280,27 @@ export default function LandingPage() {
               </button>
             </nav>
 
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Link href="/signin" className="hidden sm:block text-[#a0a0a0] hover:text-white transition-colors duration-150 font-medium text-sm">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Link href="/signin" className="hidden sm:inline-flex px-8 py-4 bg-[#111111] border border-[#333333] text-white rounded-lg font-semibold hover:bg-[#1a1a1a] hover:border-[#444444] transition-all duration-150 items-center justify-center text-sm">
                 Sign In
               </Link>
               <Link
                 href="/signup"
-                className="px-2.5 py-1.5 sm:px-3 sm:py-1 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] transition-colors duration-150 inline-flex items-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+                className="px-8 py-4 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] transition-colors duration-150 inline-flex items-center gap-2 text-sm whitespace-nowrap"
               >
                 <span className="hidden sm:inline">Get Started</span>
                 <span className="sm:hidden">Start</span>
-                <span className="hidden sm:inline"> Free</span>
-                <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
+                <span className="hidden sm:inline">Free</span>
+                <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
               </Link>
 
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-[#a0a0a0] hover:text-white"
+                className="md:hidden p-3 bg-[#ff4d00] text-white rounded-lg hover:bg-[#ff6a2c] transition-colors duration-150"
+                aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
             </div>
           </div>
@@ -372,14 +374,14 @@ export default function LandingPage() {
             >
               <Link
                 href="/signup"
-                className="group px-8 py-4 bg-[#ff4d00] text-white rounded-lg font-semibold hover:bg-[#ff6a2c] transition-all duration-150 inline-flex items-center gap-3 text-lg"
+                className="px-10 py-5 bg-[#ff4d00] text-white rounded-lg font-bold hover:bg-[#ff6a2c] transition-all duration-150 inline-flex items-center gap-3 text-base cursor-pointer"
               >
                 Start Free Trial
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-150" strokeWidth={2.5} />
+                <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
               </Link>
               <button
                 onClick={() => scrollToSection('features')}
-                className="px-8 py-4 bg-[#111111] border border-[#333333] text-white rounded-lg font-semibold hover:bg-[#1a1a1a] hover:border-[#444444] transition-all duration-150 inline-flex items-center gap-3 text-lg"
+                className="px-10 py-5 bg-[#111111] border border-[#333333] text-white rounded-lg font-bold hover:bg-[#1a1a1a] hover:border-[#444444] transition-all duration-150 inline-flex items-center gap-3 text-base cursor-pointer"
               >
                 Learn More
                 <ChevronDown className="h-5 w-5" strokeWidth={2} />
@@ -687,14 +689,14 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/signup"
-                className="group px-10 py-5 bg-[#ff4d00] text-white rounded-lg font-bold hover:bg-[#ff6a2c] transition-all duration-150 inline-flex items-center gap-3 text-lg"
+                className="px-10 py-5 bg-[#ff4d00] text-white rounded-lg font-bold hover:bg-[#ff6a2c] transition-all duration-150 inline-flex items-center justify-center gap-3 text-base cursor-pointer"
               >
                 Start Free Trial
-                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-150" strokeWidth={2.5} />
+                <ArrowRight className="h-5 w-5" strokeWidth={2.5} />
               </Link>
               <Link
                 href="/signin"
-                className="px-10 py-5 bg-[#111111] border border-[#333333] text-white rounded-lg font-bold hover:bg-[#1a1a1a] hover:border-[#444444] transition-all duration-150 inline-flex items-center gap-3 text-lg"
+                className="px-10 py-5 bg-[#111111] border border-[#333333] text-white rounded-lg font-bold hover:bg-[#1a1a1a] hover:border-[#444444] transition-all duration-150 inline-flex items-center justify-center text-base cursor-pointer"
               >
                 Sign In
               </Link>
@@ -707,11 +709,12 @@ export default function LandingPage() {
       <footer className="py-12 px-4 border-t border-[#111111]">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#ff4d00] rounded-lg flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-white" strokeWidth={2.5} />
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 bg-[#ff4d00] rounded-xl flex items-center justify-center shadow-lg shadow-[#ff4d00]/30">
+                <CheckCircle2 className="h-6 w-6 text-white" strokeWidth={2.5} />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-xl" />
               </div>
-              <span className="text-lg font-bold text-white">TodoApp</span>
+              <span className="text-lg font-bold text-white tracking-tight">TodoApp</span>
             </div>
 
             <div className="text-[#505050] text-sm">
