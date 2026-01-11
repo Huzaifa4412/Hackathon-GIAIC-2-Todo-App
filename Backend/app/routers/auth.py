@@ -414,13 +414,17 @@ async def google_callback(
 
         # Return HTML page that redirects to frontend with token
         # Use the same frontend_url determined earlier
+        # Serialize user data to JSON string first
+        import json
+        user_json = json.dumps(user_response.model_dump())
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>Sign in with Google</title>
             <script>
-                window.location.href = "{frontend_url}/dashboard?token={token}&user=" + encodeURIComponent(JSON.stringify({user_response.model_dump()}));
+                window.location.href = "{frontend_url}/dashboard?token={token}&user=" + encodeURIComponent('{user_json}');
             </script>
         </head>
         <body>
