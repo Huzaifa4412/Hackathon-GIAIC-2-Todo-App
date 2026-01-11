@@ -78,7 +78,7 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     try {
       setError("")
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || "https://todo-backend-api-pi.vercel.app"}/api/auth/sign-in/google`
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/auth/sign-in/google`
       console.log("Initiating Google sign-in to:", apiUrl)
 
       const response = await fetch(apiUrl, {
@@ -285,7 +285,7 @@ export default function SignInPage() {
             transition={{ delay: 0.3 }}
             className="text-center text-[#a0a0a0] text-sm"
           >
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-[#ff4d00] hover:underline font-semibold">
               Sign up
             </Link>
