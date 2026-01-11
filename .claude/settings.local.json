@@ -78,7 +78,8 @@
       "Skill(ui-ux-pro-max)",
       "Bash(Select-Object FullName)",
       "Bash(npm run build)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(rm:*)"
     ]
   }
 }
