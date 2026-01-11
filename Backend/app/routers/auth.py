@@ -414,9 +414,13 @@ async def google_callback(
 
         # Return HTML page that redirects to frontend with token
         # Use the same frontend_url determined earlier
-        # Serialize user data to JSON string first
+        # Serialize user data to JSON string with datetime conversion
         import json
-        user_json = json.dumps(user_response.model_dump())
+
+        # Convert datetime objects to ISO format strings for JSON serialization
+        user_dict = user_response.model_dump()
+        user_dict['created_at'] = user_dict['created_at'].isoformat()
+        user_dict['updated_at'] = user_dict['updated_at'].isoformat()
 
         html_content = f"""
         <!DOCTYPE html>
@@ -424,7 +428,8 @@ async def google_callback(
         <head>
             <title>Sign in with Google</title>
             <script>
-                window.location.href = "{frontend_url}/dashboard?token={token}&user=" + encodeURIComponent('{user_json}');
+                const userData = {json.dumps(user_dict)};
+                window.location.href = "{frontend_url}/dashboard?token={token}&user=" + encodeURIComponent(JSON.stringify(userData));
             </script>
         </head>
         <body>
