@@ -79,7 +79,8 @@
       "Bash(Select-Object FullName)",
       "Bash(npm run build)",
       "Bash(npx vercel:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npx playwright:*)"
     ]
   }
 }
