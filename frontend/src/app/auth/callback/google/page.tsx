@@ -79,64 +79,16 @@ function GoogleCallbackContent() {
           {
             method: 'GET',
             headers: {
-              'Accept': 'text/html, application/json',
+              'Accept': 'text/html',
             },
           }
         )
 
         if (response.ok) {
-          const contentType = response.headers.get("content-type")
-
-          if (contentType && contentType.includes("application/json")) {
-            // Handle JSON response
-            const data = await response.json()
-            if (data.success && data.data?.url) {
-              // Redirect to the URL (which should handle the token)
-              window.location.href = data.data.url
-            } else {
-              setStatus("error")
-              setMessage("Sign in failed. Please try again.")
-              setTimeout(() => router.push("/signin"), 3000)
-            }
-          } else {
-            // Handle HTML response - extract redirect from script
-            const html = await response.text()
-
-            // Extract the redirect URL from the HTML
-            const match = html.match(/window\.location\.href\s*=\s*["']([^"']+)["']/)
-            if (match && match[1]) {
-              // This is an HTML redirect, parse the token and user from URL
-              const url = new URL(match[1], window.location.origin)
-              const redirectToken = url.searchParams.get("token")
-              const redirectUserParam = url.searchParams.get("user")
-
-              if (redirectToken && redirectUserParam) {
-                try {
-                  const user = JSON.parse(decodeURIComponent(redirectUserParam))
-                  localStorage.setItem("auth_token", redirectToken)
-                  localStorage.setItem("user", JSON.stringify(user))
-                  setStatus("success")
-                  setMessage("Sign in successful! Redirecting...")
-
-                  setTimeout(() => {
-                    router.push("/dashboard")
-                  }, 500)
-                } catch (parseError) {
-                  console.error("Error parsing user data:", parseError)
-                  setStatus("error")
-                  setMessage("Error processing sign in. Please try again.")
-                  setTimeout(() => router.push("/signin"), 3000)
-                }
-              } else {
-                // No token in redirect URL, just follow the redirect
-                window.location.href = match[1]
-              }
-            } else {
-              setStatus("error")
-              setMessage("Invalid response from server.")
-              setTimeout(() => router.push("/signin"), 3000)
-            }
-          }
+          // Backend returns HTML that will redirect to /dashboard with token and user
+          // We just execute this HTML
+          const html = await response.text()
+          document.body.innerHTML = html
         } else {
           const errorText = await response.text()
           console.error("Backend error:", errorText)

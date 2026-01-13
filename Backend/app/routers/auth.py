@@ -422,14 +422,20 @@ async def google_callback(
         user_dict['created_at'] = user_dict['created_at'].isoformat()
         user_dict['updated_at'] = user_dict['updated_at'].isoformat()
 
+        # Serialize user data to JSON string and URL encode it
+        import json
+        from urllib.parse import quote
+
+        user_json = json.dumps(user_dict)
+        user_encoded = quote(user_json)
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>Sign in with Google</title>
             <script>
-                const userData = {json.dumps(user_dict)};
-                window.location.href = "{frontend_url}/dashboard?token={token}&user=" + encodeURIComponent(JSON.stringify(userData));
+                window.location.href = "{frontend_url}/dashboard?token={token}&user={user_encoded}";
             </script>
         </head>
         <body>

@@ -46,11 +46,20 @@ export default function DashboardPage() {
 
         // Clean URL by removing search params
         window.history.replaceState({}, "", "/dashboard")
+
+        // Fetch tasks after storing token (use setTimeout to ensure localStorage is set)
+        setTimeout(() => fetchTasks(), 100)
+        return
       } catch (error) {
         console.error("Error storing OAuth credentials:", error)
       }
     }
 
+    fetchTasks()
+  }, [])
+
+  // Separate effect for filter changes
+  useEffect(() => {
     fetchTasks()
   }, [filter])
 
