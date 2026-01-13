@@ -44,6 +44,7 @@ app = FastAPI(
 # Get allowed origins from environment or use defaults
 allowed_origins = [
     "https://frontend-omega-eight-86.vercel.app",
+    "https://giaic-hackathon-todo-nu.vercel.app",
     "http://localhost:3000",  # Next.js dev server
     "http://127.0.0.1:3000",
     "http://localhost:3001",  # Alternative port
