@@ -218,8 +218,85 @@ export default function DashboardPage() {
   ] as const
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 bg-[#050505]">
-      <div className="max-w-7xl mx-auto">
+    <>
+      {/* Premium Animated Background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {/* Geometric grid pattern */}
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255, 77, 0, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 77, 0, 0.03) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+          }}
+        />
+
+        {/* Animated orange gradient orbs */}
+        <motion.div
+          className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
+          style={{ background: 'radial-gradient(circle, #ff4d00 0%, transparent 70%)' }}
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <motion.div
+          className="absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full blur-3xl opacity-15"
+          style={{ background: 'radial-gradient(circle, #ff6a2c 0%, transparent 70%)' }}
+          animate={{
+            scale: [1.2, 1, 1.2],
+            x: [0, -50, 0],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 1,
+          }}
+        />
+
+        {/* Subtle floating particles */}
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full opacity-30"
+            style={{
+              backgroundColor: '#ff4d00',
+              left: `${20 + i * 15}%`,
+              top: `${30 + (i % 3) * 20}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.2, 0.5, 0.2],
+            }}
+            transition={{
+              duration: 4 + i * 0.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: i * 0.3,
+            }}
+          />
+        ))}
+
+        {/* Radial gradient overlay for depth */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(circle at 50% 0%, rgba(255, 77, 0, 0.05) 0%, transparent 50%)',
+          }}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 relative">
+        <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -405,6 +482,7 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   )
 }
