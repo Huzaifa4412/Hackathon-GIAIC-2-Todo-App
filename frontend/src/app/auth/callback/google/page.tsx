@@ -73,6 +73,8 @@ function GoogleCallbackContent() {
     // Case 4: Forward the callback to the backend
     const handleCallback = async () => {
       try {
+        console.log("Forwarding callback to backend...")
+
         // Forward the callback to the backend
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || "https://todo-backend-api-pi.vercel.app"}/api/auth/callback/google?code=${code}&state=${state || ""}`,
@@ -84,11 +86,58 @@ function GoogleCallbackContent() {
           }
         )
 
+        console.log("Backend response status:", response.status)
+
         if (response.ok) {
-          // Backend returns HTML that will redirect to /dashboard with token and user
-          // We just execute this HTML
+          // Backend returns HTML with a redirect script
+          // Extract the redirect URL from the HTML and navigate there
           const html = await response.text()
-          document.body.innerHTML = html
+          console.log("Backend HTML response received, length:", html.length)
+
+          // Extract the redirect URL from window.location.href
+          const redirectMatch = html.match(/window\.location\.href\s*=\s*["']([^"']+)["']/)
+
+          if (redirectMatch && redirectMatch[1]) {
+            const redirectUrl = redirectMatch[1]
+            console.log("Extracted redirect URL:", redirectUrl)
+
+            // Parse the URL to extract token and user
+            try {
+              const url = new URL(redirectUrl, window.location.origin)
+              const token = url.searchParams.get("token")
+              const userParam = url.searchParams.get("user")
+
+              if (token && userParam) {
+                console.log("Token and user found in redirect URL")
+
+                // Parse and store user data
+                const user = JSON.parse(decodeURIComponent(userParam))
+                localStorage.setItem("auth_token", token)
+                localStorage.setItem("user", JSON.stringify(user))
+
+                setStatus("success")
+                setMessage("Sign in successful! Redirecting...")
+
+                setTimeout(() => {
+                  router.push("/dashboard")
+                }, 500)
+              } else {
+                console.log("No token/user in redirect, navigating to URL directly")
+                // No token in URL, just navigate there
+                window.location.href = redirectUrl
+              }
+            } catch (parseError) {
+              console.error("Error parsing redirect URL:", parseError)
+              // If parsing fails, just navigate to the redirect URL
+              window.location.href = redirectUrl
+            }
+          } else {
+            console.error("Could not extract redirect URL from HTML")
+            console.log("HTML content:", html.substring(0, 500))
+            setStatus("error")
+            setMessage("Invalid response from server. Please try again.")
+            setTimeout(() => router.push("/signin"), 3000)
+          }
         } else {
           const errorText = await response.text()
           console.error("Backend error:", errorText)
