@@ -1,0 +1,481 @@
+openapi: 3.0.3
+info:
+  title: Better Auth API
+  description: Authentication API for email/password and Google OAuth sign-in, sign-up, and session management
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:3000/api/auth
+    description: Development server
+  - url: https://yourdomain.com/api/auth
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication operations
+  - name: Session
+    description: Session management operations
+  - name: OAuth
+    description: OAuth provider operations
+
+paths:
+  /sign-up/email:
+    post:
+      tags:
+        - Authentication
+      summary: Sign up with email and password
+      description: Create a new user account with email and password
+      operationId: signUpEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  maxLength: 128
+                  example: securePassword123
+                name:
+                  type: string
+                  example: John Doe
+                image:
+                  type: string
+                  format: uri
+                  example: https://example.com/avatar.jpg
+                callbackURL:
+                  type: string
+                  format: uri
+                  example: /dashboard
+      responses:
+        '200':
+          description: Sign-up successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUpResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sign-in/email:
+    post:
+      tags:
+        - Authentication
+      summary: Sign in with email and password
+      description: Authenticate user with email and password
+      operationId: signInEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: securePassword123
+                rememberMe:
+                  type: boolean
+                  default: true
+                  example: true
+                callbackURL:
+                  type: string
+                  format: uri
+                  example: /dashboard
+      responses:
+        '200':
+          description: Sign-in successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Email not verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sign-out:
+    post:
+      tags:
+        - Authentication
+      summary: Sign out
+      description: Sign out current user and clear session
+      operationId: signOut
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Sign-out successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /sign-in/social:
+    post:
+      tags:
+        - OAuth
+      summary: Sign in with OAuth provider
+      description: Initiate OAuth flow with Google or other providers
+      operationId: signInSocial
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - provider
+              properties:
+                provider:
+                  type: string
+                  enum: [google, github, apple]
+                  example: google
+                callbackURL:
+                  type: string
+                  format: uri
+                  example: /dashboard
+                errorCallbackURL:
+                  type: string
+                  format: uri
+                  example: /error
+                newUserCallbackURL:
+                  type: string
+                  format: uri
+                  example: /welcome
+                disableRedirect:
+                  type: boolean
+                  default: false
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                  example: ["email", "profile"]
+      responses:
+        '200':
+          description: OAuth URL generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    example: https://accounts.google.com/o/oauth2/v2/auth?client_id=...
+                  state:
+                    type: string
+                    example: random_state_token
+
+  /callback/google:
+    get:
+      tags:
+        - OAuth
+      summary: Google OAuth callback
+      description: Handle OAuth callback from Google
+      operationId: googleCallback
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Authorization code from Google
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: State parameter for CSRF protection
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Error from Google (if user cancelled)
+      responses:
+        '302':
+          description: Redirect to callback URL
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: OAuth error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /get-session:
+    get:
+      tags:
+        - Session
+      summary: Get current session
+      description: Retrieve current user session from cookies
+      operationId: getSession
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Session retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /session:
+    get:
+      tags:
+        - Session
+      summary: List user sessions
+      description: Get all active sessions for current user
+      operationId: listSessions
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Sessions retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Session'
+
+  /revoke-session:
+    post:
+      tags:
+        - Session
+      summary: Revoke a session
+      description: Revoke a specific session (sign out from device)
+      operationId: revokeSession
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  description: Session token to revoke
+      responses:
+        '200':
+          description: Session revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /revoke-sessions:
+    post:
+      tags:
+        - Session
+      summary: Revoke all sessions
+      description: Revoke all sessions except current
+      operationId: revokeOtherSessions
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Sessions revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+      description: Session token from httpOnly cookie
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: usr_1234567890
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        emailVerified:
+          type: boolean
+          example: true
+        image:
+          type: string
+          format: uri
+          example: https://lh3.googleusercontent.com/photo.jpg
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-13T10:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2025-01-13T10:00:00Z"
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          example: sess_1234567890
+        userId:
+          type: string
+          example: usr_1234567890
+        token:
+          type: string
+          example: random_session_token_string
+        expiresAt:
+          type: string
+          format: date-time
+          example: "2025-01-20T10:00:00Z"
+        ipAddress:
+          type: string
+          example: 192.168.1.1
+        userAgent:
+          type: string
+          example: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-01-13T10:00:00Z"
+
+    SignUpResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        session:
+          $ref: '#/components/schemas/Session'
+
+    SignInResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        session:
+          $ref: '#/components/schemas/Session'
+
+    SessionResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        session:
+          $ref: '#/components/schemas/Session'
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation successful
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: email
+              message:
+                type: string
+                example: Email is required
+
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          example: password
+        message:
+          type: string
+          example: Password must be at least 8 characters
+
+  parameters:
+    EmailParam:
+      name: email
+      in: query
+      required: true
+      schema:
+        type: string
+        format: email
+      description: User email address
+
+security:
+  - cookieAuth: []
