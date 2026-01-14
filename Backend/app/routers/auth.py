@@ -472,12 +472,30 @@ async def google_callback(
         from fastapi.responses import HTMLResponse
         return HTMLResponse(content=html_content)
 
-    except httpx.HTTPError as e:
+    except httpx.HTTPStatusError as e:
+        # Get detailed error response from Google
+        error_detail = e.response.text if e.response else str(e)
+        print(f"Google OAuth token exchange failed:")
+        print(f"  Status: {e.response.status_code if e.response else 'Unknown'}")
+        print(f"  Response: {error_detail}")
+        print(f"  Request redirect_uri: {redirect_uri}")
+        print(f"  Request params: {token_data}")
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to exchange token with Google: {str(e)}"
+            detail=f"Google OAuth token exchange failed: {error_detail}"
+        )
+    except httpx.HTTPError as e:
+        print(f"Google OAuth network error: {str(e)}")
+        print(f"  Request redirect_uri: {redirect_uri}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Google OAuth network error: {str(e)}"
         )
     except Exception as e:
+        print(f"OAuth callback unexpected error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"OAuth callback failed: {str(e)}"
