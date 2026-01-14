@@ -182,3 +182,16 @@ async def root():
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+@app.get("/debug/oauth-config")
+async def debug_oauth_config():
+    """Debug endpoint to check OAuth configuration."""
+    from app.config import GOOGLE_CLIENT_ID, FRONTEND_URL
+
+    return {
+        "google_client_id_configured": bool(GOOGLE_CLIENT_ID),
+        "google_client_id_prefix": GOOGLE_CLIENT_ID[:20] + "..." if GOOGLE_CLIENT_ID else None,
+        "frontend_url_env": FRONTEND_URL,
+        "cors_origins": allowed_origins,
+    }

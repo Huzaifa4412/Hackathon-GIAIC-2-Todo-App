@@ -285,8 +285,15 @@ async def google_sign_in(request: Request):
         # Default to your new production URL
         frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
 
-    # Generate state parameter for CSRF protection
-    state = secrets.token_urlsafe(32)
+    # Encode frontend URL in state parameter (base64 encode to hide it)
+    import json
+    import base64
+    state_data = {
+        "csrf": secrets.token_urlsafe(16),
+        "frontend_url": frontend_url
+    }
+    state_json = json.dumps(state_data)
+    state_encoded = base64.b64encode(state_json.encode()).decode()
 
     # Build Google OAuth URL
     google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -295,7 +302,7 @@ async def google_sign_in(request: Request):
         "redirect_uri": f"{frontend_url}/auth/callback/google",
         "response_type": "code",
         "scope": "openid email profile",
-        "state": state,
+        "state": state_encoded,
         "access_type": "offline",
         "prompt": "consent",
     }
@@ -303,10 +310,10 @@ async def google_sign_in(request: Request):
     auth_url = f"{google_auth_url}?{urlencode(params)}"
 
     # Log for debugging
-    print(f"Google sign-in: origin={origin}, referer={referer}, frontend_url={frontend_url}, redirect_uri={frontend_url}/auth/callback/google")
+    print(f"Google sign-in: origin={origin}, referer={referer}, frontend_url={frontend_url}, redirect_uri={frontend_url}/auth/callback/google, state={state_encoded[:50]}...")
 
     return create_success_response(
-        data={"url": auth_url, "state": state},
+        data={"url": auth_url, "state": state_encoded},
         message="Google OAuth URL generated"
     )
 
@@ -338,24 +345,24 @@ async def google_callback(
 
     try:
         import httpx
+        import json
+        import base64
 
-        # Get the same frontend URL that was used in the initial OAuth request
-        # Check Referer header to determine which frontend initiated the request
-        referer = request.headers.get("Referer", "")
-        if "localhost:3000" in referer or "localhost:3001" in referer:
-            frontend_url = "http://localhost:3000"
-        elif "giaic-hackathon-todo-nu.vercel.app" in referer:
-            frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
-        elif "frontend-omega-eight-86.vercel.app" in referer:
-            frontend_url = "https://frontend-omega-eight-86.vercel.app"
-        else:
-            # Default to your new production URL
+        # Decode state parameter to get frontend URL
+        try:
+            state_decoded = base64.b64decode(state).decode()
+            state_data = json.loads(state_decoded)
+            frontend_url = state_data.get("frontend_url", "https://giaic-hackathon-todo-nu.vercel.app")
+            csrf_token = state_data.get("csrf")
+            print(f"OAuth callback: decoded state, frontend_url={frontend_url}, csrf={csrf_token}")
+        except Exception as e:
+            print(f"Failed to decode state: {e}, using default frontend URL")
             frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
 
         redirect_uri = f"{frontend_url}/auth/callback/google"
 
         # Log for debugging
-        print(f"OAuth callback: referer={referer}, frontend_url={frontend_url}, redirect_uri={redirect_uri}")
+        print(f"OAuth callback: frontend_url={frontend_url}, redirect_uri={redirect_uri}")
 
         # Exchange authorization code for access token
         token_url = "https://oauth2.googleapis.com/token"
