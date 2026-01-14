@@ -22,7 +22,7 @@ from app.schemas import (
     ErrorDetail
 )
 from app.models.user import User
-from app.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+from app.config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL
 
 
 # Password hashing (simple implementation for MVP)
@@ -276,14 +276,14 @@ async def google_sign_in(request: Request):
     origin = request.headers.get("Origin", "")
     referer = request.headers.get("Referer", "")
 
-    # Determine frontend URL based on origin/referer
+    # Determine frontend URL based on origin/referer or use config default
     if "localhost:3000" in origin or "localhost:3000" in referer or "localhost:3001" in referer:
         frontend_url = "http://localhost:3000"
     elif "giaic-hackathon-todo-nu.vercel.app" in origin or "giaic-hackathon-todo-nu.vercel.app" in referer:
         frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
     else:
-        # Default to your new production URL
-        frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
+        # Use FRONTEND_URL from config as default
+        frontend_url = FRONTEND_URL
 
     # Encode frontend URL in state parameter (base64 encode to hide it)
     import json
@@ -363,10 +363,10 @@ async def google_callback(
             csrf_token = state_data.get("csrf")
             print(f"OAuth callback: decoded state, frontend_url={frontend_url}, csrf={csrf_token}")
         except Exception as e:
-            print(f"Failed to decode state: {e}, using default frontend URL")
+            print(f"Failed to decode state: {e}, using FRONTEND_URL from config")
             import traceback
             traceback.print_exc()
-            frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
+            frontend_url = FRONTEND_URL
 
         redirect_uri = f"{frontend_url}/auth/callback/google"
 

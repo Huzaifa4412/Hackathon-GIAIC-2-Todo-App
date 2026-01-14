@@ -7,9 +7,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Spec-Driven Development (SDD)** multi-phase Todo application:
 - **Phase I**: Todo CLI Core (completed) - Python CLI with local JSON storage
 - **Phase II**: Full-Stack Web App (completed) - Next.js + FastAPI + Neon DB + Better Auth
-- **Phase III**: Modern UI/UX Upgrade (current branch) - Glassmorphism design, animations, premium UI
+- **Phase III**: Modern UI/UX Upgrade (completed) - Glassmorphism design, animations, premium UI
+- **Current Enhancement**: Better Auth + Google OAuth improvements (branch: `001-better-auth-oauth`)
 
-Current branch: `003-modern-ui-upgrade`
+Current branch: `001-better-auth-oauth` - Working on enhancing Better Auth implementation with Google OAuth fixes
 
 ## Tech Stack Summary
 
@@ -26,13 +27,14 @@ Current branch: `003-modern-ui-upgrade`
 - **React Icons 5.5** - Additional icon sets
 
 ### Backend
-- **FastAPI 0.128+** - Python web framework
-- **SQLModel 0.0.31+** - ORM (SQLAlchemy + Pydantic)
+- **FastAPI 0.115+** - Python web framework
+- **SQLModel 0.0.22+** - ORM (SQLAlchemy + Pydantic)
 - **PostgreSQL** - Database (Neon Serverless)
 - **PyJWT 2.10+** - JWT authentication
-- **Uvicorn 0.40+** - ASGI server
-- **Python 3.13+** - Runtime requirement
+- **Uvicorn 0.32+** - ASGI server
+- **Python 3.12+** - Runtime requirement (per pyproject.toml)
 - **UV** - Fast Python package installer (preferred over pip)
+- **Authlib 1.3+** - OAuth library for Google authentication
 
 ### Key Design Patterns
 - **Glassmorphism**: Frosted glass effect with backdrop-blur, transparency, and subtle borders
@@ -353,18 +355,16 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
 
 **Phase I** (Todo CLI Core): ✅ Completed
 **Phase II** (Full-Stack Web App): ✅ Completed
-**Phase III** (Modern UI/UX Upgrade): ✅ Completed (current branch: `003-modern-ui-upgrade`)
+**Phase III** (Modern UI/UX Upgrade): ✅ Completed
+**Phase Enhancement** (Better Auth OAuth): 🚧 In Progress (branch: `001-better-auth-oauth`)
 
-**Phase III Breakdown**:
-- Phase 1: Setup (dependencies, Tailwind config) ✅
-- Phase 2: Foundation (theme system, components) ✅
-- Phase 3: User Story 1 - Enhanced Visual Experience ✅
-- Phase 4: User Story 4 - Professional Authentication Flow ✅
-- Phase 5: User Story 2 - Intuitive Task Management ✅
-- Phase 6: User Story 3 - Delightful Micro-Interactions ✅
-- Phase 7: Polish & Optimization ✅
+**Current Work**: Google OAuth implementation improvements
+- Recent commits focus on fixing OAuth 400 Bad Request errors
+- Redirect URI mismatch resolution for production deployment
+- State parameter encoding for OAuth flow
+- Enhanced error logging for OAuth debugging
 
-See `specs/003-modern-ui-upgrade/tasks.md` for complete task list (all 70 tasks completed)
+See `specs/001-better-auth-oauth/` for current enhancement artifacts
 
 ---
 
@@ -382,6 +382,49 @@ See `specs/003-modern-ui-upgrade/tasks.md` for complete task list (all 70 tasks 
 | Theme not persisting | Check localStorage for `theme` key, verify ThemeProvider is in root layout |
 | Glassmorphism not visible | Ensure `glass.css` is imported in `layout.tsx` and Tailwind is configured |
 | Motion not working | Check that `motion` package is installed (not `framer-motion`) - use `motion/react` imports |
+| Google OAuth 400 Bad Request | Check redirect_uri in Google Cloud Console matches production URL exactly (no trailing slash, correct domain) |
+| OAuth state parameter mismatch | Ensure state parameter includes encoded frontend URL for callback handling |
+| Production OAuth errors | Verify GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in Vercel environment variables |
+
+---
+
+## Google OAuth Configuration (Critical for Current Branch)
+
+### Production Deployment
+- **Frontend URL**: `https://giaic-hackathon-todo-nu.vercel.app`
+- **OAuth Callback**: `https://giaic-hackathon-todo-nu.vercel.app/auth/callback/google`
+
+### Google Cloud Console Configuration
+The OAuth redirect URI in Google Cloud Console must match **exactly**:
+```
+https://giaic-hackathon-todo-nu.vercel.app/auth/callback/google
+```
+
+**Common pitfalls**:
+- ❌ Wrong: `/api/auth/callback/google` (has /api prefix)
+- ❌ Wrong: Trailing slash `/` at the end
+- ❌ Wrong: `http://` instead of `https://`
+- ❌ Wrong: Old domain names (frontend-omega-eight-86.vercel.app)
+
+### Local Development
+For local OAuth testing, use:
+- Frontend: `http://localhost:3000`
+- Callback: `http://localhost:3000/auth/callback/google`
+
+### Environment Variables Required
+Both frontend (`.env.local`) and backend (`.env`) need:
+- `GOOGLE_CLIENT_ID` - From Google Cloud Console
+- `GOOGLE_CLIENT_SECRET` - From Google Cloud Console
+- `BETTER_AUTH_SECRET` - Shared secret (min 32 chars)
+- `NEXT_PUBLIC_API_URL` - Backend URL (frontend only)
+- `FRONTEND_URL` - Frontend URL (backend only)
+
+### OAuth Flow Debugging
+The current branch includes enhanced logging for OAuth errors. Check:
+1. Browser console for frontend errors
+2. Backend logs for token exchange errors
+3. Network tab for HTTP 400 Bad Request details
+4. Google Cloud Console for credential validation
 
 ---
 
@@ -390,6 +433,7 @@ See `specs/003-modern-ui-upgrade/tasks.md` for complete task list (all 70 tasks 
 **Phase I** (Todo CLI Core): `specs/001-todo-cli-core/`
 **Phase II** (Full-Stack Web App): `specs/002-full-stack-web-app/`
 **Phase III** (Modern UI/UX Upgrade): `specs/003-modern-ui-upgrade/`
+**Current Enhancement** (Better Auth OAuth): `specs/001-better-auth-oauth/`
 
 Each phase contains:
 - `spec.md` - Feature requirements (What & Why)
@@ -403,7 +447,7 @@ Each phase contains:
 **SDD Workflow**: Specify → Plan → Tasks → Implement → Test
 
 **Prompt History Records**: `history/prompts/`
-- Organized by phase (001-todo-cli-core, 002-full-stack-web-app, 003-modern-ui-upgrade)
+- Organized by phase (001-todo-cli-core, 002-full-stack-web-app, 003-modern-ui-upgrade, 001-better-auth-oauth)
 - Record every user interaction verbatim
 - Route by stage (spec, plan, tasks, implementation)
 
@@ -461,4 +505,6 @@ Each phase contains:
 - **Phase I CLI**: `specs/001-todo-cli-core/` - Completed CLI application
 - **Phase II Web App**: `specs/002-full-stack-web-app/` - Completed full-stack application
 - **Phase III UI Upgrade**: `specs/003-modern-ui-upgrade/` - Completed modern UI/UX implementation
-- **Quickstart**: `specs/003-modern-ui-upgrade/quickstart.md` - Latest setup guide
+- **Current OAuth Enhancement**: `specs/001-better-auth-oauth/` - Better Auth + Google OAuth improvements
+- **Google OAuth Setup**: `GOOGLE_OAUTH_SETUP.md` - OAuth configuration guide
+- **Deployment Guide**: `DEPLOYMENT.md` - Vercel deployment instructions

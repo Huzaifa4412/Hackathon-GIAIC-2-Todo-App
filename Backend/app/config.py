@@ -25,6 +25,9 @@ JWT_SECRET: str = os.getenv("JWT_SECRET", BETTER_AUTH_SECRET)
 GOOGLE_CLIENT_ID: str | None = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET: str | None = os.getenv("GOOGLE_CLIENT_SECRET")
 
+# Frontend URL (for OAuth redirect_uri)
+FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
 # Server Configuration
 HOST: str = os.getenv("HOST", "0.0.0.0")
 PORT: int = int(os.getenv("PORT", "8000"))
