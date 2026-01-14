@@ -293,7 +293,8 @@ async def google_sign_in(request: Request):
         "frontend_url": frontend_url
     }
     state_json = json.dumps(state_data)
-    state_encoded = base64.b64encode(state_json.encode()).decode()
+    # Use urlsafe_b64encode to avoid + and / characters that need encoding
+    state_encoded = base64.urlsafe_b64encode(state_json.encode()).decode()
 
     # Build Google OAuth URL
     google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -350,13 +351,21 @@ async def google_callback(
 
         # Decode state parameter to get frontend URL
         try:
-            state_decoded = base64.b64decode(state).decode()
+            # Try urlsafe_b64decode first (for urlsafe encoding)
+            try:
+                state_decoded = base64.urlsafe_b64decode(state).decode()
+            except Exception:
+                # Fallback to regular b64decode
+                state_decoded = base64.b64decode(state).decode()
+
             state_data = json.loads(state_decoded)
             frontend_url = state_data.get("frontend_url", "https://giaic-hackathon-todo-nu.vercel.app")
             csrf_token = state_data.get("csrf")
             print(f"OAuth callback: decoded state, frontend_url={frontend_url}, csrf={csrf_token}")
         except Exception as e:
             print(f"Failed to decode state: {e}, using default frontend URL")
+            import traceback
+            traceback.print_exc()
             frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
 
         redirect_uri = f"{frontend_url}/auth/callback/google"
@@ -374,8 +383,33 @@ async def google_callback(
             "grant_type": "authorization_code",
         }
 
+        # Log token request details (without secrets)
+        print(f"Token exchange request:")
+        print(f"  URL: {token_url}")
+        print(f"  redirect_uri: {redirect_uri}")
+        print(f"  code length: {len(code)}")
+        print(f"  client_id: {GOOGLE_CLIENT_ID[:20]}...")
+
         async with httpx.AsyncClient() as client:
-            token_response = await client.post(token_url, data=token_data)
+            # Explicit headers for Google OAuth
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json"
+            }
+
+            token_response = await client.post(
+                token_url,
+                data=token_data,
+                headers=headers
+            )
+
+            print(f"Token response status: {token_response.status_code}")
+            print(f"Token response headers: {dict(token_response.headers)}")
+
+            # Log response body before raising for status
+            if token_response.status_code != 200:
+                print(f"Token response body: {token_response.text}")
+
             token_response.raise_for_status()
             token_json = token_response.json()
 

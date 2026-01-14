@@ -88,7 +88,8 @@
       "Bash(.specify/scripts/powershell/create-new-feature.ps1 -Json -Number 1 -ShortName \"better-auth-oauth\" \"Create an authentication implementation skill for Better Auth with Google OAuth and Neon PostgreSQL. The skill should guide developers through: 1. Setting up Better Auth with email/password authentication, 2. Configuring Google OAuth \\(sign-in/sign-out\\), 3. Setting up Neon PostgreSQL database for user storage, 4. Implementing session management with JWT tokens, 5. Creating authentication UI components \\(sign-in, sign-up forms\\), 6. Handling OAuth callbacks and token storage, 7. Managing user sessions and sign-out functionality. Target stack: Better Auth \\(latest\\), Next.js 16+ with App Router, Neon PostgreSQL \\(serverless\\), TypeScript, Tailwind CSS for styling. The skill should provide step-by-step implementation guidance with code examples, database schema, API routes, and frontend components.\")",
       "Bash(.specify/scripts/bash/create-phr.sh:*)",
       "Bash(.specify/scripts/powershell/setup-plan.ps1 -Json)",
-      "Skill(superpowers:writing-skills)"
+      "Skill(superpowers:writing-skills)",
+      "Skill(better-auth-oauth-implementation)"
     ]
   }
 }
