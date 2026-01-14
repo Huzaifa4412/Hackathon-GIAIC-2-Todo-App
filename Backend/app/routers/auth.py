@@ -272,8 +272,18 @@ async def google_sign_in(request: Request):
             )
         )
 
-    # Get frontend URL from environment or request
-    frontend_url = request.headers.get("Origin") or "https://frontend-omega-eight-86.vercel.app"
+    # Get frontend URL from environment or request headers
+    origin = request.headers.get("Origin", "")
+    referer = request.headers.get("Referer", "")
+
+    # Determine frontend URL based on origin/referer
+    if "localhost:3000" in origin or "localhost:3000" in referer or "localhost:3001" in referer:
+        frontend_url = "http://localhost:3000"
+    elif "giaic-hackathon-todo-nu.vercel.app" in origin or "giaic-hackathon-todo-nu.vercel.app" in referer:
+        frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
+    else:
+        # Default to your new production URL
+        frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
 
     # Generate state parameter for CSRF protection
     state = secrets.token_urlsafe(32)
@@ -291,6 +301,9 @@ async def google_sign_in(request: Request):
     }
 
     auth_url = f"{google_auth_url}?{urlencode(params)}"
+
+    # Log for debugging
+    print(f"Google sign-in: origin={origin}, referer={referer}, frontend_url={frontend_url}, redirect_uri={frontend_url}/auth/callback/google")
 
     return create_success_response(
         data={"url": auth_url, "state": state},
@@ -331,13 +344,18 @@ async def google_callback(
         referer = request.headers.get("Referer", "")
         if "localhost:3000" in referer or "localhost:3001" in referer:
             frontend_url = "http://localhost:3000"
+        elif "giaic-hackathon-todo-nu.vercel.app" in referer:
+            frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
         elif "frontend-omega-eight-86.vercel.app" in referer:
             frontend_url = "https://frontend-omega-eight-86.vercel.app"
         else:
-            # Default to production URL
-            frontend_url = "https://frontend-omega-eight-86.vercel.app"
+            # Default to your new production URL
+            frontend_url = "https://giaic-hackathon-todo-nu.vercel.app"
 
         redirect_uri = f"{frontend_url}/auth/callback/google"
+
+        # Log for debugging
+        print(f"OAuth callback: referer={referer}, frontend_url={frontend_url}, redirect_uri={redirect_uri}")
 
         # Exchange authorization code for access token
         token_url = "https://oauth2.googleapis.com/token"
