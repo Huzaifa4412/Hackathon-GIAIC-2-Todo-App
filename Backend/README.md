@@ -1,49 +1,94 @@
 ---
-title: Todo API Backend
-emoji: 🚀
-colorFrom: blue
+title: Todo Backend API with AI Chatbot
+emoji: 🤖
+colorFrom: indigo
 colorTo: purple
 sdk: docker
 pinned: false
 license: mit
 ---
 
-# Todo API Backend
+# Todo Backend API with AI Chatbot
 
-FastAPI backend for the Todo application with JWT authentication and PostgreSQL database.
+FastAPI backend with AI-powered task management using OpenAI Agents SDK and Z.ai GLM-4.7.
 
 ## Features
 
-- JWT Authentication
-- Task Management API
-- PostgreSQL Database (Neon)
-- CORS Enabled
-- Rate Limiting
+- ✅ FastAPI with Python 3.12
+- ✅ JWT Authentication
+- ✅ PostgreSQL (Neon) database
+- ✅ AI Agent with Z.ai GLM-4.7 integration
+- ✅ Task CRUD operations
+- ✅ Natural language task management
+- ✅ Google OAuth support
+
+## Environment Variables
+
+Configure these in the Space Settings (Settings → Environment Variables):
+
+```bash
+DATABASE_URL=postgresql://neondb_owner:password@host/dbname?sslmode=require
+JWT_SECRET=your-secret-key-min-32-characters
+BETTER_AUTH_SECRET=your-secret-key-min-32-characters
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+FRONTEND_URL=https://your-frontend.vercel.app
+GEMINI_API_KEY=your-gemini-api-key
+ZAI_API_KEY=your-zai-api-key
+DEBUG=false
+```
 
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/sign-up` - Create new user
-- `POST /api/auth/sign-in` - Sign in user
-- `POST /api/auth/google` - Google OAuth (optional)
+- `POST /api/auth/sign-up` - Create new account
+- `POST /api/auth/sign-in` - Sign in with email/password
+- `POST /api/auth/google` - Sign in with Google OAuth
 
-### Tasks
-- `GET /api/tasks` - List all tasks (requires auth)
-- `POST /api/tasks` - Create new task (requires auth)
-- `GET /api/tasks/{id}` - Get specific task (requires auth)
-- `PUT /api/tasks/{id}` - Update task (requires auth)
-- `DELETE /api/tasks/{id}` - Delete task (requires auth)
-- `PATCH /api/tasks/{id}/status` - Update task status (requires auth)
+### Tasks (Protected - JWT required)
+- `GET /api/tasks` - List all tasks
+- `POST /api/tasks` - Create new task
+- `GET /api/tasks/{id}` - Get specific task
+- `PUT /api/tasks/{id}` - Update task
+- `DELETE /api/tasks/{id}` - Delete task
+- `PATCH /api/tasks/{id}/status` - Update task status
 
-## Environment Variables
+### AI Agent (Protected - JWT required)
+- `POST /api/agent/chat` - Chat with AI assistant for task management
+- `GET /api/agent/chat/stream` - Stream AI response (Server-Sent Events)
 
-The following environment variables are configured in the Space settings:
+### Health Check
+- `GET /` - API health check
+- `GET /api/agent/quota` - Check API quota status
 
-- `DATABASE_URL` - PostgreSQL connection string
-- `BETTER_AUTH_SECRET` - Secret key for JWT tokens
-- `GOOGLE_CLIENT_ID` - (Optional) Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET` - (Optional) Google OAuth client secret
+## Frontend Integration
 
-## Deployment
+Configure your frontend environment variable:
 
-This Space is deployed as a Docker container using the `Dockerfile` in the repository.
+```env
+NEXT_PUBLIC_API_URL=https://<your-space-name>.hf.space
+```
+
+Example:
+```env
+NEXT_PUBLIC_API_URL=https://todo-backend-api.hf.space
+```
+
+## Tech Stack
+
+- **Framework**: FastAPI 0.115+
+- **Database**: PostgreSQL (Neon Serverless)
+- **ORM**: SQLModel 0.0.22+
+- **Authentication**: JWT + Better Auth
+- **AI**: OpenAI Agents SDK + Z.ai GLM-4.7
+- **Deployment**: Hugging Face Spaces (Docker)
+- **Python**: 3.12
+
+## Deployment Notes
+
+This Space uses Docker runtime. The Dockerfile:
+- Uses Python 3.12-slim base image
+- Installs all dependencies from requirements.txt
+- Exposes port 7860 (Hugging Face Spaces default)
+- Runs uvicorn server with auto-reload disabled for production
+- Includes health checks for monitoring
