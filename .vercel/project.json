@@ -1,0 +1,12 @@
+{
+  "projectId": "prj_I1hEQwqFE8dB4oZH4bWDpLG5XATJ",
+  "orgId": "team_4J4Jx1kbcxZfz8xUvZLjIRMo",
+  "projectName": "todo-app",
+  "settings": {
+    "framework": "nextjs",
+    "installCommand": "cd frontend && npm install",
+    "buildCommand": "cd frontend && npm run build",
+    "outputDirectory": "frontend/.next",
+    "rootDirectory": "./"
+  }
+}
