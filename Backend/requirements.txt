@@ -9,3 +9,7 @@ psycopg2-binary
 email-validator
 python-dotenv
 httpx
+openai
+mangum
+agents
+
