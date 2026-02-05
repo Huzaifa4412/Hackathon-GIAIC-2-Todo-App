@@ -59,11 +59,13 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
       if (session) {
         setSessionId(initialSessionId);
         setMessages(
-          session.messages.map(msg => ({
-            role: msg.role,
-            content: msg.content,
-            timestamp: msg.timestamp
-          }))
+          session.messages
+            .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+            .map(msg => ({
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+              timestamp: msg.timestamp
+            }))
         );
       }
     }
