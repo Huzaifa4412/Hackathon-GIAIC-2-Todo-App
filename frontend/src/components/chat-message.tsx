@@ -61,7 +61,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
 
         {/* Task operation indicator (for future user stories) */}
-        {message.taskOperation && (
+        {/* Disabled until task operation metadata is implemented */}
+        {/* message.taskOperation && (
           <div className={`
             mt-2 flex items-center gap-2 text-xs
             ${message.taskOperation.status === 'success'
@@ -79,7 +80,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
               <span className="text-gray-500">#{message.taskOperation.taskId}</span>
             )}
           </div>
-        )}
+        ) */}
 
         {/* Timestamp (shown on hover) */}
         <div className="mt-1 text-xs text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
