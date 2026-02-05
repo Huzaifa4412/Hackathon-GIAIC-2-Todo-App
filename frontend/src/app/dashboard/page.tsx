@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { GlassCard } from '@/components/glass-card'
 import { StatsCard } from '@/components/stats-card'
 import { TaskCard } from '@/components/task-card'
+import { ChatWidget } from '@/components/chat-widget'
 import { Plus, LogOut, CheckCircle2, Circle, TrendingUp, ArrowLeft } from 'lucide-react'
 
 interface Task {
@@ -483,6 +484,9 @@ export default function DashboardPage() {
         )}
       </div>
       </div>
+
+      {/* AI Chat Widget (T025) */}
+      <ChatWidget />
     </>
   )
 }

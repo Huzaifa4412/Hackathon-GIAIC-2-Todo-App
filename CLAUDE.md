@@ -8,9 +8,9 @@ This is a **Spec-Driven Development (SDD)** multi-phase Todo application:
 - **Phase I**: Todo CLI Core (completed) - Python CLI with local JSON storage
 - **Phase II**: Full-Stack Web App (completed) - Next.js + FastAPI + Neon DB + Better Auth
 - **Phase III**: Modern UI/UX Upgrade (completed) - Glassmorphism design, animations, premium UI
-- **Current Enhancement**: Better Auth + Google OAuth improvements (branch: `001-better-auth-oauth`)
+- **Current Enhancement**: AI Chatbot Assistant (branch: `001-ai-chatbot`)
 
-Current branch: `001-better-auth-oauth` - Working on enhancing Better Auth implementation with Google OAuth fixes
+Current branch: `001-ai-chatbot` - Working on AI-powered task management chatbot with OpenAI Agents SDK + Gemini API
 
 ## Tech Stack Summary
 
@@ -35,6 +35,8 @@ Current branch: `001-better-auth-oauth` - Working on enhancing Better Auth imple
 - **Python 3.12+** - Runtime requirement (per pyproject.toml)
 - **UV** - Fast Python package installer (preferred over pip)
 - **Authlib 1.3+** - OAuth library for Google authentication
+- **OpenAI Agents SDK** - AI agent framework for task operations
+- **LiteLLM** - Unified LLM API (supports Gemini via OpenAI-compatible interface)
 
 ### Key Design Patterns
 - **Glassmorphism**: Frosted glass effect with backdrop-blur, transparency, and subtle borders
@@ -194,6 +196,9 @@ GET    /api/tasks/{id}         # Get specific task
 PUT    /api/tasks/{id}         # Update task
 DELETE /api/tasks/{id}         # Delete task
 PATCH  /api/tasks/{id}/status  # Update task status
+
+# AI Agent (Protected - JWT required)
+POST   /api/agent/chat         # Chat with AI assistant for task management
 ```
 
 **Error Handling**: Always use `HTTPException`, NOT tuple returns like `(response, status_code)`
@@ -237,7 +242,10 @@ src/
 │   ├── toast.tsx         # Notification system
 │   ├── empty-state.tsx   # Empty state with floating animation
 │   ├── loading-spinner.tsx # Elegant loading spinner
-│   └── page-transition.tsx # Page transition wrapper
+│   ├── page-transition.tsx # Page transition wrapper
+│   ├── chat-widget.tsx   # AI chatbot container (minimize/maximize)
+│   ├── chat-input.tsx    # Chat message input with auto-resize
+│   └── chat-message.tsx  # Individual chat message display
 ├── lib/                  # Utilities
 │   ├── api.ts            # API client (existing from Phase II)
 │   ├── auth.ts           # Auth utilities (Better Auth)
@@ -300,7 +308,13 @@ Backend/app/
 │   └── common.py       # SuccessResponse, ErrorResponse, helper functions
 ├── routers/
 │   ├── auth.py         # /api/auth/* endpoints
-│   └── tasks.py        # /api/tasks/* endpoints (user isolation)
+│   ├── tasks.py        # /api/tasks/* endpoints (user isolation)
+│   └── agent.py        # /api/agent/chat endpoint (AI chatbot)
+├── agents/
+│   ├── task_tools.py   # Agent tools for task CRUD operations
+│   └── context.py      # Chat context management
+├── middleware/
+│   └── rate_limit.py   # Rate limiting middleware (60 req/min default)
 └── utils/
     └── security.py     # create_jwt_token(), verify_password()
 ```
@@ -323,6 +337,8 @@ JWT_SECRET=your-jwt-secret
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 DEBUG=true
+GEMINI_API_KEY=your-gemini-api-key
+OPENAI_API_KEY=optional-if-using-gemini-proxy
 ```
 
 **Frontend (.env.local)**:
@@ -356,15 +372,17 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
 **Phase I** (Todo CLI Core): ✅ Completed
 **Phase II** (Full-Stack Web App): ✅ Completed
 **Phase III** (Modern UI/UX Upgrade): ✅ Completed
-**Phase Enhancement** (Better Auth OAuth): 🚧 In Progress (branch: `001-better-auth-oauth`)
+**Phase Enhancement** (Better Auth OAuth): ✅ Completed
+**Current Enhancement** (AI Chatbot): 🚧 In Progress (branch: `001-ai-chatbot`)
 
-**Current Work**: Google OAuth implementation improvements
-- Recent commits focus on fixing OAuth 400 Bad Request errors
-- Redirect URI mismatch resolution for production deployment
-- State parameter encoding for OAuth flow
-- Enhanced error logging for OAuth debugging
+**Current Work**: AI Chatbot Assistant implementation
+- OpenAI Agents SDK with Gemini API integration
+- Task CRUD operations via natural language
+- Glassmorphism chat widget with minimize/maximize
+- localStorage chat history (100 messages, 5MB limit)
+- Rate limiting: 30 messages per minute
 
-See `specs/001-better-auth-oauth/` for current enhancement artifacts
+See `specs/001-ai-chatbot/` for current enhancement artifacts
 
 ---
 
@@ -385,46 +403,10 @@ See `specs/001-better-auth-oauth/` for current enhancement artifacts
 | Google OAuth 400 Bad Request | Check redirect_uri in Google Cloud Console matches production URL exactly (no trailing slash, correct domain) |
 | OAuth state parameter mismatch | Ensure state parameter includes encoded frontend URL for callback handling |
 | Production OAuth errors | Verify GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in Vercel environment variables |
-
----
-
-## Google OAuth Configuration (Critical for Current Branch)
-
-### Production Deployment
-- **Frontend URL**: `https://giaic-hackathon-todo-nu.vercel.app`
-- **OAuth Callback**: `https://giaic-hackathon-todo-nu.vercel.app/auth/callback/google`
-
-### Google Cloud Console Configuration
-The OAuth redirect URI in Google Cloud Console must match **exactly**:
-```
-https://giaic-hackathon-todo-nu.vercel.app/auth/callback/google
-```
-
-**Common pitfalls**:
-- ❌ Wrong: `/api/auth/callback/google` (has /api prefix)
-- ❌ Wrong: Trailing slash `/` at the end
-- ❌ Wrong: `http://` instead of `https://`
-- ❌ Wrong: Old domain names (frontend-omega-eight-86.vercel.app)
-
-### Local Development
-For local OAuth testing, use:
-- Frontend: `http://localhost:3000`
-- Callback: `http://localhost:3000/auth/callback/google`
-
-### Environment Variables Required
-Both frontend (`.env.local`) and backend (`.env`) need:
-- `GOOGLE_CLIENT_ID` - From Google Cloud Console
-- `GOOGLE_CLIENT_SECRET` - From Google Cloud Console
-- `BETTER_AUTH_SECRET` - Shared secret (min 32 chars)
-- `NEXT_PUBLIC_API_URL` - Backend URL (frontend only)
-- `FRONTEND_URL` - Frontend URL (backend only)
-
-### OAuth Flow Debugging
-The current branch includes enhanced logging for OAuth errors. Check:
-1. Browser console for frontend errors
-2. Backend logs for token exchange errors
-3. Network tab for HTTP 400 Bad Request details
-4. Google Cloud Console for credential validation
+| AI chatbot not responding | Check GEMINI_API_KEY is set in backend .env and Gemini API is accessible |
+| Chat history not persisting | Verify localStorage is available and not exceeded 5MB limit |
+| Rate limit errors (chat) | Wait before sending more messages (30 msg/min limit) |
+| Agent tool errors | Check backend logs for tool execution failures, verify JWT token is valid |
 
 ---
 
@@ -433,7 +415,8 @@ The current branch includes enhanced logging for OAuth errors. Check:
 **Phase I** (Todo CLI Core): `specs/001-todo-cli-core/`
 **Phase II** (Full-Stack Web App): `specs/002-full-stack-web-app/`
 **Phase III** (Modern UI/UX Upgrade): `specs/003-modern-ui-upgrade/`
-**Current Enhancement** (Better Auth OAuth): `specs/001-better-auth-oauth/`
+**Better Auth OAuth Enhancement**: `specs/001-better-auth-oauth/`
+**Current Enhancement** (AI Chatbot): `specs/001-ai-chatbot/`
 
 Each phase contains:
 - `spec.md` - Feature requirements (What & Why)
@@ -447,7 +430,7 @@ Each phase contains:
 **SDD Workflow**: Specify → Plan → Tasks → Implement → Test
 
 **Prompt History Records**: `history/prompts/`
-- Organized by phase (001-todo-cli-core, 002-full-stack-web-app, 003-modern-ui-upgrade, 001-better-auth-oauth)
+- Organized by phase (001-todo-cli-core, 002-full-stack-web-app, 003-modern-ui-upgrade, 001-better-auth-oauth, 001-ai-chatbot)
 - Record every user interaction verbatim
 - Route by stage (spec, plan, tasks, implementation)
 
@@ -462,11 +445,13 @@ Each phase contains:
 | File | Purpose |
 |------|---------|
 | `Backend/app/main.py` | Backend entry point, CORS, middleware |
-| `frontend/app/page.tsx` | Frontend entry point, auth redirect |
+| `frontend/src/app/page.tsx` | Frontend entry point, auth redirect |
 | `Backend/.env` | Backend environment variables |
 | `frontend/.env.local` | Frontend environment variables |
 | `Backend/tests/conftest.py` | Test fixtures, test database config |
-| `specs/002-full-stack-web-app/` | SDD artifacts (spec, plan, tasks) |
+| `Backend/app/agents/task_tools.py` | AI agent tools for task operations |
+| `frontend/src/components/chat-widget.tsx` | AI chatbot widget component |
+| `specs/001-ai-chatbot/` | Current SDD artifacts (spec, plan, tasks) |
 
 ---
 
@@ -505,6 +490,61 @@ Each phase contains:
 - **Phase I CLI**: `specs/001-todo-cli-core/` - Completed CLI application
 - **Phase II Web App**: `specs/002-full-stack-web-app/` - Completed full-stack application
 - **Phase III UI Upgrade**: `specs/003-modern-ui-upgrade/` - Completed modern UI/UX implementation
-- **Current OAuth Enhancement**: `specs/001-better-auth-oauth/` - Better Auth + Google OAuth improvements
+- **Better Auth OAuth Enhancement**: `specs/001-better-auth-oauth/` - Better Auth + Google OAuth improvements
+- **Current AI Chatbot Enhancement**: `specs/001-ai-chatbot/` - AI-powered task management chatbot
 - **Google OAuth Setup**: `GOOGLE_OAUTH_SETUP.md` - OAuth configuration guide
 - **Deployment Guide**: `DEPLOYMENT.md` - Vercel deployment instructions
+
+---
+
+## AI Chatbot Architecture (Current Branch)
+
+### Agent System Design
+
+The AI chatbot uses the **OpenAI Agents SDK** with **Gemini API** for natural language task management:
+
+**Flow**:
+```
+User sends message → Frontend (chat-widget.tsx)
+  ↓
+POST /api/agent/chat (with JWT token)
+  ↓
+Rate limit check (30 msg/min)
+  ↓
+Agent processes message with context
+  ↓
+Agent invokes tools (create_task, list_tasks, update_task, delete_task)
+  ↓
+Tools execute SQL operations (filtered by user_id from JWT)
+  ↓
+Agent formats response
+  ↓
+Response returned to frontend
+  ↓
+Message stored in localStorage (last 100 messages)
+```
+
+**Agent Tools** (`Backend/app/agents/task_tools.py`):
+- `create_task` - Create a new task with title, description, priority, due_date
+- `list_tasks` - List all tasks or filter by status/keyword
+- `update_task` - Update task status, title, description
+- `delete_task` - Delete a task with confirmation
+
+**Context Management** (`Backend/app/agents/context.py`):
+- Maintains conversation history for disambiguation
+- Handles task reference resolution (e.g., "the meeting task" → most recent matching task)
+- Provides clarifying questions when multiple tasks match
+
+**Rate Limiting**:
+- 30 messages per minute per IP
+- Implemented in middleware/rate_limit.py
+- Returns 429 Too Many Requests when exceeded
+
+**Frontend Components**:
+- `chat-widget.tsx` - Main container, minimize/maximize, bottom-right positioning
+- `chat-input.tsx` - Message input with auto-resize textarea
+- `chat-message.tsx` - Individual message display with user/assistant styling
+
+**Storage**:
+- Chat history: localStorage (`chat_history` key, max 100 messages)
+- User authentication: JWT token required for all operations

@@ -28,6 +28,12 @@ GOOGLE_CLIENT_SECRET: str | None = os.getenv("GOOGLE_CLIENT_SECRET")
 # Frontend URL (for OAuth redirect_uri)
 FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
+# Gemini API Key for OpenAI Agents SDK (fallback)
+GEMINI_API_KEY: str | None = os.getenv("GEMINI_API_KEY")
+
+# Z.ai API Key for OpenAI Agents SDK (primary)
+ZAI_API_KEY: str | None = os.getenv("ZAI_API_KEY")
+
 # Server Configuration
 HOST: str = os.getenv("HOST", "0.0.0.0")
 PORT: int = int(os.getenv("PORT", "8000"))

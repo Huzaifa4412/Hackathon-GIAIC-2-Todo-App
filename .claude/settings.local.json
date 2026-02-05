@@ -89,7 +89,24 @@
       "Bash(.specify/scripts/bash/create-phr.sh:*)",
       "Bash(.specify/scripts/powershell/setup-plan.ps1 -Json)",
       "Skill(superpowers:writing-skills)",
-      "Skill(better-auth-oauth-implementation)"
+      "Skill(better-auth-oauth-implementation)",
+      "Bash(find:*)",
+      "Bash(pkill:*)",
+      "Bash(vercel env ls:*)",
+      "Bash(vercel env get:*)",
+      "Bash(vercel env add:*)",
+      "Bash(vercel env update:*)",
+      "mcp__zread__get_repo_structure",
+      "mcp__web-reader__webReader",
+      "mcp__web-search-prime__webSearchPrime",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_evaluate",
+      "Bash(tree:*)",
+      "Bash(findstr /i \"README\")",
+      "mcp__zread__read_file",
+      "Bash(npm run dev:*)"
     ]
   }
 }

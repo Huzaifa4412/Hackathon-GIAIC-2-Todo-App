@@ -13,7 +13,7 @@ import os
 
 from app.config import DEBUG, DATABASE_URL
 from app.database import init_db
-from app.routers import auth, tasks
+from app.routers import auth, tasks, agent
 
 
 @asynccontextmanager
@@ -166,6 +166,7 @@ async def security_headers_middleware(request: Request, call_next):
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(tasks.router, prefix="/api/tasks", tags=["Tasks"])
+app.include_router(agent.router, tags=["Agent"])
 
 
 @app.get("/")
