@@ -4,6 +4,11 @@ Vercel Serverless Function Entry Point for FastAPI
 This file serves as the entry point for Vercel's Python runtime.
 It imports and runs the FastAPI application.
 """
+import sys
+import os
+
+# Add the Backend directory to Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the FastAPI app
 from app.main import app
@@ -24,7 +29,7 @@ def handler(event, context):
     from typing import Any, Dict
 
     # Create an ASGI handler adapter for Mangum
-    asgi_handler = Mangum(app, lifespan="off")
+    asgi_handler = Mangum(app)
 
     # Return the response
     return asgi_handler(event, context)

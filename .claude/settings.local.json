@@ -106,7 +106,13 @@
       "Bash(tree:*)",
       "Bash(findstr /i \"README\")",
       "mcp__zread__read_file",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(git merge:*)",
+      "Bash(repos/Huzaifa4412/Hackathon-GIAIC-2-Todo-App)",
+      "Bash(git restore:*)",
+      "Bash(timeout 10 npm run dev:*)",
+      "Bash(vercel ls:*)",
+      "Bash(vercel inspect:*)"
     ]
   }
 }
