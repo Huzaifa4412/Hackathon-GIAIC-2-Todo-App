@@ -297,10 +297,17 @@ async def google_sign_in(request: Request):
     state_encoded = base64.urlsafe_b64encode(state_json.encode()).decode()
 
     # Build Google OAuth URL
+    # IMPORTANT: redirect_uri must point to the BACKEND, not frontend
+    # This is because the frontend callback page doesn't exist on Vercel (404)
+    # The backend will handle the callback and redirect to frontend with token
+    backend_origin = request.headers.get("host", "todo-backend-api-pi.vercel.app")
+    scheme = "https" if "vercel" in backend_origin or "localhost" not in backend_origin else "http"
+    backend_url = f"{scheme}://{backend_origin}"
+
     google_auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
     params = {
         "client_id": GOOGLE_CLIENT_ID,
-        "redirect_uri": f"{frontend_url}/auth/callback/google",
+        "redirect_uri": f"{backend_url}/api/auth/callback/google",
         "response_type": "code",
         "scope": "openid email profile",
         "state": state_encoded,
@@ -311,7 +318,7 @@ async def google_sign_in(request: Request):
     auth_url = f"{google_auth_url}?{urlencode(params)}"
 
     # Log for debugging
-    print(f"Google sign-in: origin={origin}, referer={referer}, frontend_url={frontend_url}, redirect_uri={frontend_url}/auth/callback/google, state={state_encoded[:50]}...")
+    print(f"Google sign-in: origin={origin}, referer={referer}, frontend_url={frontend_url}, backend_url={backend_url}, redirect_uri={backend_url}/api/auth/callback/google, state={state_encoded[:50]}...")
 
     return create_success_response(
         data={"url": auth_url, "state": state_encoded},
@@ -368,10 +375,15 @@ async def google_callback(
             traceback.print_exc()
             frontend_url = FRONTEND_URL
 
-        redirect_uri = f"{frontend_url}/auth/callback/google"
+        # Get the origin from the request for the redirect_uri
+        # This should be the backend URL, not the frontend
+        origin = request.headers.get("host", "todo-backend-api-pi.vercel.app")
+        scheme = "https" if "vercel" in origin or "localhost" not in origin else "http"
+        backend_url = f"{scheme}://{origin}"
+        redirect_uri = f"{backend_url}/api/auth/callback/google"
 
         # Log for debugging
-        print(f"OAuth callback: frontend_url={frontend_url}, redirect_uri={redirect_uri}")
+        print(f"OAuth callback: frontend_url={frontend_url}, backend_url={backend_url}, redirect_uri={redirect_uri}")
 
         # Exchange authorization code for access token
         token_url = "https://oauth2.googleapis.com/token"
