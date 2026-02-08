@@ -27,29 +27,56 @@ export async function GET(req: NextRequest) {
     return Response.redirect(googleUrl)
   }
 
-  // Google OAuth callback
-  if (pathname.endsWith("/callback/google")) {
+  // Google OAuth callback - handles both /api/auth/callback/google and callback pattern
+  if (pathname.includes("/callback/google")) {
     // Forward callback to backend
     const callbackUrl = `${BACKEND_API_URL}/api/auth/callback/google${url.search}`
-    const response = await fetch(callbackUrl)
 
-    if (response.ok) {
-      const data = await response.json()
+    try {
+      const response = await fetch(callbackUrl, {
+        headers: {
+          // Forward the original headers
+          'User-Agent': req.headers.get('User-Agent') || '',
+        },
+      })
 
-      // Redirect to dashboard with token
-      const redirectUrl = new URL("/dashboard", req.url)
-      if (data.data?.token) {
-        // TODO: Store token securely (httpOnly cookie)
-        redirectUrl.searchParams.set("token", data.data.token)
+      if (response.ok) {
+        const contentType = response.headers.get("content-type") || ""
+
+        if (contentType.includes("application/json")) {
+          // Handle JSON response
+          const data = await response.json()
+
+          // Redirect to dashboard with token
+          const redirectUrl = new URL("/dashboard", req.url)
+          if (data.data?.token) {
+            redirectUrl.searchParams.set("token", data.data.token)
+          }
+          if (data.data?.user) {
+            redirectUrl.searchParams.set("user", JSON.stringify(data.data.user))
+          }
+
+          return Response.redirect(redirectUrl)
+        } else {
+          // Handle HTML response from backend (redirects with script tag)
+          const html = await response.text()
+          return new Response(html, {
+            status: 200,
+            headers: { "Content-Type": "text/html" }
+          })
+        }
       }
 
-      return Response.redirect(redirectUrl)
+      // Redirect to sign-in with error
+      const errorUrl = new URL("/signin", req.url)
+      errorUrl.searchParams.set("error", "oauth_failed")
+      return Response.redirect(errorUrl)
+    } catch (error) {
+      console.error("Callback proxy error:", error)
+      const errorUrl = new URL("/signin", req.url)
+      errorUrl.searchParams.set("error", "network_error")
+      return Response.redirect(errorUrl)
     }
-
-    // Redirect to sign-in with error
-    const errorUrl = new URL("/signin", req.url)
-    errorUrl.searchParams.set("error", "oauth_failed")
-    return Response.redirect(errorUrl)
   }
 
   return new Response("Not found", { status: 404 })
